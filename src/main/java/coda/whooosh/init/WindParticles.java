@@ -1,7 +1,7 @@
-package coda.wind.init;
+package coda.whooosh.init;
 
-import coda.wind.Wind;
-import coda.wind.client.particles.WindParticle;
+import coda.whooosh.Whooosh;
+import coda.whooosh.client.particles.WindParticle;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.particle.ParticleEngine;
 import net.minecraft.core.particles.ParticleType;
@@ -15,12 +15,12 @@ import net.minecraftforge.registries.ForgeRegistries;
 import net.minecraftforge.registries.RegistryObject;
 
 public class WindParticles {
-    public static final DeferredRegister<ParticleType<?>> PARTICLES = DeferredRegister.create(ForgeRegistries.PARTICLE_TYPES, Wind.MOD_ID);
+    public static final DeferredRegister<ParticleType<?>> PARTICLES = DeferredRegister.create(ForgeRegistries.PARTICLE_TYPES, Whooosh.MOD_ID);
 
     public static final RegistryObject<SimpleParticleType> WIND =
             PARTICLES.register("wind", () -> new SimpleParticleType(false));
 
-    @Mod.EventBusSubscriber(modid = Wind.MOD_ID, bus = Mod.EventBusSubscriber.Bus.MOD)
+    @Mod.EventBusSubscriber(modid = Whooosh.MOD_ID, bus = Mod.EventBusSubscriber.Bus.MOD)
     public static class RegisterParticleFactories {
 
         @SubscribeEvent(priority = EventPriority.LOWEST)

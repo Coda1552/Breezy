@@ -2,8 +2,8 @@ modLoader="javafml" #mandatory
 loaderVersion="[39,)" #mandatory This is typically bumped every Minecraft version by Forge. See our download page for lists of versions.
 license="All rights reserved"
 [[mods]] #mandatory
-modId="wind" #mandatory
+modId="whooosh" #mandatory
 version="${file.jarVersion}" #mandatory
-displayName="Wind:tm:" #mandatory
+displayName="Whooosh!" #mandatory
 credits="Coda" #optional
-description=''''''
+description='''Whooosh! adds configurable wind particles.'''
