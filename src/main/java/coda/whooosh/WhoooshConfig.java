@@ -42,10 +42,10 @@ public class WhoooshConfig {
 
         Client(ForgeConfigSpec.Builder builder) {
             builder.push("General");
-            shouldDisplayWind = builder.comment("Should wind be displayed?").define("should_display_wind", true);
-            lowWindFrequency = builder.comment("Wind Frequency for: Forest, Taiga, and Desert biomes").defineInRange("low_wind_frequency", 0.00025, 0.0, 0.05);
-            mediumWindFrequency = builder.comment("Wind Frequency for: Plains and Savanna biomes").defineInRange("medium_wind_frequency", 0.0005, 0.0, 0.05);
-            highWindFrequency = builder.comment("Wind Frequency for: Icy, Extreme Hills, and Mountain biomes").defineInRange("high_wind_frequency", 0.00075, 0.0, 0.05);
+            shouldDisplayWind = builder.comment("Should wind be displayed?\nDefault: true").define("should_display_wind", true);
+            lowWindFrequency = builder.comment("Wind Frequency for: Forest, Taiga, and Desert biomes\nDefault: 0.025").defineInRange("low_wind_frequency", 0.025, 0.0, 5.0);
+            mediumWindFrequency = builder.comment("Wind Frequency for: Plains and Savanna biomes\nDefault: 0.05").defineInRange("medium_wind_frequency", 0.05, 0.0, 5.0);
+            highWindFrequency = builder.comment("Wind Frequency for: Icy, Extreme Hills, and Mountain biomes\nDefault: 0.075").defineInRange("high_wind_frequency", 0.075, 0.0, 5.0);
             builder.pop();
         }
 
