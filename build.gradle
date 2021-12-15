@@ -14,8 +14,8 @@ apply plugin: 'eclipse'
 apply plugin: 'maven-publish'
 
 version = '1.18.1-1.0.0'
-group = 'coda.thump' // http://maven.apache.org/guides/mini/guide-naming-conventions.html
-archivesBaseName = 'thump'
+group = 'coda.whooosh' // http://maven.apache.org/guides/mini/guide-naming-conventions.html
+archivesBaseName = 'whooosh'
 
 java.toolchain.languageVersion = JavaLanguageVersion.of(17) // Mojang ships Java 8 to end users, so your mod should target Java 8.
 
