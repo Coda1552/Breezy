@@ -1,4 +1,4 @@
-package coda.whooosh.init;
+package coda.whooosh.registry;
 
 import coda.whooosh.Whooosh;
 import coda.whooosh.client.particles.WindParticle;
@@ -14,7 +14,7 @@ import net.minecraftforge.registries.DeferredRegister;
 import net.minecraftforge.registries.ForgeRegistries;
 import net.minecraftforge.registries.RegistryObject;
 
-public class WindParticles {
+public class WhoooshParticles {
     public static final DeferredRegister<ParticleType<?>> PARTICLES = DeferredRegister.create(ForgeRegistries.PARTICLE_TYPES, Whooosh.MOD_ID);
 
     public static final RegistryObject<SimpleParticleType> WIND =
