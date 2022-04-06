@@ -1,7 +1,7 @@
 package coda.whooosh.client.model;
 
 import coda.whooosh.Whooosh;
-import coda.whooosh.common.HotAirBalloonEntity;
+import coda.whooosh.common.entities.HotAirBalloonEntity;
 import net.minecraft.resources.ResourceLocation;
 import software.bernie.geckolib3.model.AnimatedTickingGeoModel;
 

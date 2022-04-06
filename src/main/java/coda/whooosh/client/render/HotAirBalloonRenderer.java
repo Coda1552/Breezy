@@ -1,7 +1,7 @@
 package coda.whooosh.client.render;
 
 import coda.whooosh.client.model.HotAirBalloonModel;
-import coda.whooosh.common.HotAirBalloonEntity;
+import coda.whooosh.common.entities.HotAirBalloonEntity;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import net.minecraft.client.renderer.MultiBufferSource;

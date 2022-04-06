@@ -1,5 +1,6 @@
-package coda.whooosh.common;
+package coda.whooosh.common.entities;
 
+import coda.whooosh.registry.WhoooshItems;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
@@ -50,12 +51,12 @@ public class HotAirBalloonEntity extends Animal implements IAnimatable, IAnimati
     public void tick() {
         super.tick();
 
-        if (getLitness() > 1 && isVehicle() && tickCount % 60 == 0 && random.nextBoolean()) {
+        if (getLitness() > 0 && tickCount % ((5 / getLitness()) * 40) == 0 && random.nextBoolean()) {
             setLitness(getLitness() - 1);
         }
 
-        if (!isVehicle() && getLitness() > 0 && random.nextBoolean()) {
-            setLitness(getLitness() - 1);
+        if (getLitness() > 0 && !isVehicle()) {
+            setLitness(0);
         }
 
         if (isInWaterOrRain()) {
@@ -76,7 +77,7 @@ public class HotAirBalloonEntity extends Animal implements IAnimatable, IAnimati
             player.startRiding(this);
         }
 
-        if (isVehicle() && getControllingPassenger().is(player)) {
+        if (getLitness() < 5 && isVehicle() && getControllingPassenger().is(player)) {
             if (player.getItemInHand(hand).is(Items.FLINT_AND_STEEL)) {
                 setLitness(getLitness() + 1);
                 swing(hand);
@@ -86,7 +87,7 @@ public class HotAirBalloonEntity extends Animal implements IAnimatable, IAnimati
 
         if (player.isShiftKeyDown()) {
             discard();
-            //spawnAtLocation(new ItemStack(Items.APPLE));
+            spawnAtLocation(new ItemStack(WhoooshItems.HOT_AIR_BALLOON.get()));
             return InteractionResult.PASS;
         }
 
@@ -107,14 +108,8 @@ public class HotAirBalloonEntity extends Animal implements IAnimatable, IAnimati
     @Override
     public void travel(Vec3 pos) {
         if (isAlive()) {
-            if (this.isVehicle()) {
-                super.travel(move(pos));
-            }
-            else {
-                super.travel(pos);
-            }
+            super.travel(move(pos));
         }
-        super.travel(pos);
     }
 
     public void setLitness(int litness) {
@@ -126,21 +121,32 @@ public class HotAirBalloonEntity extends Animal implements IAnimatable, IAnimati
     }
 
     private Vec3 move(Vec3 pos) {
-        if (!(getControllingPassenger() instanceof LivingEntity)) return Vec3.ZERO;
-
         LivingEntity passenger = (LivingEntity) this.getControllingPassenger();
 
-        Vec3 view = passenger.getLookAngle().scale(0.125D);
+        if (getLitness() > 0) {
+            if (getControllingPassenger() != null) {
+                Vec3 view = passenger.getLookAngle().scale(0.125D);
 
-        if (getLitness() > 1) {
-            setDeltaMovement(pos.x + view.x, getLitness() * 0.02D, pos.z + view.z);
+                setDeltaMovement(pos.x + view.x, (getLitness() + 1) * 0.02D, pos.z + view.z);
+            }
+            else {
+                setDeltaMovement(pos.x, (getLitness() + 1) * 0.02D, pos.z);
+            }
+
             if (isOnGround()) {
                 setDeltaMovement(getDeltaMovement().add(0D, 1.0D, 0D));
             }
         }
 
-        if (getLitness() == 1) {
-            setDeltaMovement(pos.x + view.x, -0.025D, pos.z + view.z);
+        if (!isOnGround() && getLitness() == 0) {
+            if (getControllingPassenger() != null) {
+                Vec3 view = passenger.getLookAngle().scale(0.125D);
+
+                setDeltaMovement(pos.x + view.x, -0.025D, pos.z + view.z);
+            }
+            else {
+                setDeltaMovement(pos.x, -0.025D, pos.z);
+            }
         }
 
         return pos;
@@ -148,7 +154,7 @@ public class HotAirBalloonEntity extends Animal implements IAnimatable, IAnimati
 
     @Override
     public boolean causeFallDamage(float pFallDistance, float pMultiplier, DamageSource pSource) {
-        return false;
+        return true;
     }
 
     @Override

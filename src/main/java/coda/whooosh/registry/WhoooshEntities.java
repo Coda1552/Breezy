@@ -1,7 +1,7 @@
 package coda.whooosh.registry;
 
 import coda.whooosh.Whooosh;
-import coda.whooosh.common.HotAirBalloonEntity;
+import coda.whooosh.common.entities.HotAirBalloonEntity;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.MobCategory;

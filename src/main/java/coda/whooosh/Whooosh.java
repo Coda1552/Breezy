@@ -1,9 +1,9 @@
 package coda.whooosh;
 
-import coda.whooosh.common.HotAirBalloonEntity;
+import coda.whooosh.common.entities.HotAirBalloonEntity;
 import coda.whooosh.registry.WhoooshEntities;
+import coda.whooosh.registry.WhoooshItems;
 import coda.whooosh.registry.WhoooshParticles;
-import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.level.biome.AmbientParticleSettings;
 import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.biome.BiomeSpecialEffects;
@@ -34,6 +34,7 @@ public class Whooosh {
 
         WhoooshParticles.PARTICLES.register(bus);
         WhoooshEntities.ENTITIES.register(bus);
+        WhoooshItems.ITEMS.register(bus);
 
         ModLoadingContext.get().registerConfig(ModConfig.Type.CLIENT, WhoooshConfig.Client.SPEC);
     }
