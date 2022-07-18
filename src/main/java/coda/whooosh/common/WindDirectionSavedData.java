@@ -10,6 +10,7 @@ import net.minecraft.world.level.saveddata.SavedData;
 
 import java.util.Random;
 
+// todo, add wind compass, make wind change from day to day, add sand bags
 public class WindDirectionSavedData extends SavedData {
     private static final int INTERVAL = 12;
     private final Direction[] directions = new Direction[INTERVAL];
