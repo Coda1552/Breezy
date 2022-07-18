@@ -1,6 +1,10 @@
 package coda.whooosh.common.entities;
 
+import coda.whooosh.Whooosh;
+import coda.whooosh.common.WindDirectionSavedData;
 import coda.whooosh.registry.WhoooshItems;
+import net.minecraft.client.Minecraft;
+import net.minecraft.core.Direction;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
@@ -18,6 +22,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.Nullable;
 import software.bernie.geckolib3.core.IAnimatable;
@@ -121,17 +126,18 @@ public class HotAirBalloonEntity extends Animal implements IAnimatable, IAnimati
     }
 
     private Vec3 move(Vec3 pos) {
-        LivingEntity passenger = (LivingEntity) this.getControllingPassenger();
+        if (!level.isClientSide) {
+            WindDirectionSavedData data = ((ServerLevel) level).getDataStorage().computeIfAbsent(WindDirectionSavedData::new, () -> new WindDirectionSavedData(random), Whooosh.MOD_ID + ".savedata");
+
+            Direction direction = data.getWindDirection(blockPosition().getY(), level);
+
+            if (!isOnGround() && getControllingPassenger() instanceof Player) {
+                setDeltaMovement(getDeltaMovement().add(position().add(Vec3.atCenterOf(direction.getNormal()))).scale(0.5F));
+            }
+        }
 
         if (getLitness() > 0) {
-            if (getControllingPassenger() != null) {
-                Vec3 view = passenger.getLookAngle().scale(0.125D);
-
-                setDeltaMovement(pos.x + view.x, (getLitness() + 1) * 0.02D, pos.z + view.z);
-            }
-            else {
-                setDeltaMovement(pos.x, (getLitness() + 1) * 0.02D, pos.z);
-            }
+            setDeltaMovement(pos.x, (getLitness() + 1) * 0.02D, pos.z);
 
             if (isOnGround()) {
                 setDeltaMovement(getDeltaMovement().add(0D, 1.0D, 0D));
@@ -139,14 +145,7 @@ public class HotAirBalloonEntity extends Animal implements IAnimatable, IAnimati
         }
 
         if (!isOnGround() && getLitness() == 0) {
-            if (getControllingPassenger() != null) {
-                Vec3 view = passenger.getLookAngle().scale(0.125D);
-
-                setDeltaMovement(pos.x + view.x, -0.025D, pos.z + view.z);
-            }
-            else {
-                setDeltaMovement(pos.x, -0.025D, pos.z);
-            }
+            setDeltaMovement(pos.x, -0.025D, pos.z);
         }
 
         return pos;
