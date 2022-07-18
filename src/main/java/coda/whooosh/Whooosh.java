@@ -54,6 +54,9 @@ public class Whooosh {
 
         Biome.BiomeCategory category = event.getCategory();
 
+        if (category == Biome.BiomeCategory.NETHER || category == Biome.BiomeCategory.THEEND) {
+            return;
+        }
         if (WhoooshConfig.Client.INSTANCE.shouldDisplayWind.get()) {
             switch (category) {
                 // LOW

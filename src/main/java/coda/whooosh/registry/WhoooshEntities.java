@@ -12,7 +12,7 @@ import net.minecraftforge.registries.RegistryObject;
 public class WhoooshEntities {
     public static final DeferredRegister<EntityType<?>> ENTITIES = DeferredRegister.create(ForgeRegistries.ENTITIES, Whooosh.MOD_ID);
 
-    public static final RegistryObject<EntityType<HotAirBalloonEntity>> HOT_AIR_BALLOON = create("hot_air_balloon", EntityType.Builder.of(HotAirBalloonEntity::new, MobCategory.MISC).sized(1.2f, 2.2f));
+    public static final RegistryObject<EntityType<HotAirBalloonEntity>> HOT_AIR_BALLOON = create("hot_air_balloon", EntityType.Builder.of(HotAirBalloonEntity::new, MobCategory.MISC).sized(1.2f, 0.9f));
 
     private static <T extends Entity> RegistryObject<EntityType<T>> create(String name, EntityType.Builder<T> builder) {
         return ENTITIES.register(name, () -> builder.build(Whooosh.MOD_ID + "." + name));
