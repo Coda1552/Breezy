@@ -132,20 +132,25 @@ public class HotAirBalloonEntity extends Animal implements IAnimatable, IAnimati
             Direction direction = data.getWindDirection(blockPosition().getY(), level);
 
             if (!isOnGround() && getControllingPassenger() instanceof Player) {
-                setDeltaMovement(getDeltaMovement().add(position().add(Vec3.atCenterOf(direction.getNormal()))).scale(0.5F));
+                setDeltaMovement(getDeltaMovement().add(Vec3.atCenterOf(direction.getNormal())).scale(0.075F));
             }
+
+            if (getLitness() > 0) {
+                setDeltaMovement(getDeltaMovement().add(0, (getLitness() + 1) * 0.02D, 0));
+
+                if (isOnGround()) {
+                    setDeltaMovement(getDeltaMovement().add(0D, 1.0D, 0D));
+                }
+            }
+
+            if (!isOnGround() && getLitness() == 0) {
+                setDeltaMovement(getDeltaMovement().add(0, -0.025D, 0));
+            }
+
         }
 
-        if (getLitness() > 0) {
-            setDeltaMovement(pos.x, (getLitness() + 1) * 0.02D, pos.z);
-
-            if (isOnGround()) {
-                setDeltaMovement(getDeltaMovement().add(0D, 1.0D, 0D));
-            }
-        }
-
-        if (!isOnGround() && getLitness() == 0) {
-            setDeltaMovement(pos.x, -0.025D, pos.z);
+        if (getControllingPassenger() == null) {
+            setDeltaMovement(0, -0.05, 0);
         }
 
         return pos;

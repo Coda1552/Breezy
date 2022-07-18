@@ -11,7 +11,7 @@ import net.minecraft.world.level.saveddata.SavedData;
 import java.util.Random;
 
 public class WindDirectionSavedData extends SavedData {
-    private static final int INTERVAL = 24;
+    private static final int INTERVAL = 12;
     private final Direction[] directions = new Direction[INTERVAL];
 
     public WindDirectionSavedData(Random random) {
