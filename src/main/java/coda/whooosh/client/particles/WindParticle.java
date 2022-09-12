@@ -29,6 +29,8 @@ public class WindParticle extends RisingParticle {
     public void tick() {
         super.tick();
         this.setSpriteFromAge(this.sprites);
+
+        if (y < 85) remove();
     }
 
     @OnlyIn(Dist.CLIENT)
@@ -45,9 +47,7 @@ public class WindParticle extends RisingParticle {
             double r = random.nextDouble() * Math.PI * 2;
             double newY = y + random.nextInt(15) + random.nextInt(15);
 
-            WindParticle wind = new WindParticle(world, (Math.cos(r) * d) + x, newY, (Math.sin(r) * d) + z, xSpeed, ySpeed, zSpeed, this.sprite);
-
-            return wind;
+            return new WindParticle(world, (Math.cos(r) * d) + x, newY, (Math.sin(r) * d) + z, xSpeed, ySpeed, zSpeed, this.sprite);
         }
     }
 }

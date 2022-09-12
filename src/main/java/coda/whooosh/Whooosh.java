@@ -1,20 +1,18 @@
 package coda.whooosh;
 
-import coda.whooosh.common.WindDirectionSavedData;
 import coda.whooosh.common.entities.HotAirBalloonEntity;
 import coda.whooosh.registry.WhoooshEntities;
 import coda.whooosh.registry.WhoooshItems;
 import coda.whooosh.registry.WhoooshParticles;
-import net.minecraft.client.Minecraft;
-import net.minecraft.core.BlockPos;
-import net.minecraft.server.level.ServerLevel;
+import net.minecraft.util.profiling.jfr.event.WorldLoadFinishedEvent;
 import net.minecraft.world.level.biome.AmbientParticleSettings;
 import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.biome.BiomeSpecialEffects;
-import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.event.ForgeEventFactory;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.entity.EntityAttributeCreationEvent;
+import net.minecraftforge.event.server.ServerStartedEvent;
 import net.minecraftforge.event.world.BiomeLoadingEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.fml.ModLoadingContext;
@@ -45,19 +43,23 @@ public class Whooosh {
         ModLoadingContext.get().registerConfig(ModConfig.Type.CLIENT, WhoooshConfig.Client.SPEC);
     }
 
-    private void registerEntityAttributes(EntityAttributeCreationEvent event) {
-        event.put(WhoooshEntities.HOT_AIR_BALLOON.get(), HotAirBalloonEntity.createAttributes().build());
+    private void registerEntityAttributes(EntityAttributeCreationEvent e) {
+        e.put(WhoooshEntities.HOT_AIR_BALLOON.get(), HotAirBalloonEntity.createAttributes().build());
     }
 
-    private void addWindParticles(BiomeLoadingEvent event) {
-        BiomeSpecialEffects baseEffects = event.getEffects();
+    private void resetWindDirection(TickEvent.WorldTickEvent e) {
+
+    }
+
+    private void addWindParticles(BiomeLoadingEvent e) {
+        BiomeSpecialEffects baseEffects = e.getEffects();
 
         BiomeSpecialEffects defaultEffects = new BiomeSpecialEffects.Builder().ambientParticle(new AmbientParticleSettings(WhoooshParticles.WIND.get(), 0.0002F)).fogColor(baseEffects.getFogColor()).skyColor(baseEffects.getSkyColor()).waterColor(baseEffects.getWaterColor()).waterFogColor(baseEffects.getWaterFogColor()).build();
         BiomeSpecialEffects lowWind = new BiomeSpecialEffects.Builder().ambientParticle(new AmbientParticleSettings(WhoooshParticles.WIND.get(), WhoooshConfig.Client.INSTANCE.lowWindFrequency.get().floatValue() * 1000)).fogColor(baseEffects.getFogColor()).skyColor(baseEffects.getSkyColor()).waterColor(baseEffects.getWaterColor()).waterFogColor(baseEffects.getWaterFogColor()).build();
         BiomeSpecialEffects mediumWind = new BiomeSpecialEffects.Builder().ambientParticle(new AmbientParticleSettings(WhoooshParticles.WIND.get(), WhoooshConfig.Client.INSTANCE.mediumWindFrequency.get().floatValue() * 1000)).fogColor(baseEffects.getFogColor()).skyColor(baseEffects.getSkyColor()).waterColor(baseEffects.getWaterColor()).waterFogColor(baseEffects.getWaterFogColor()).build();
         BiomeSpecialEffects highWind = new BiomeSpecialEffects.Builder().ambientParticle(new AmbientParticleSettings(WhoooshParticles.WIND.get(), WhoooshConfig.Client.INSTANCE.highWindFrequency.get().floatValue() * 1000)).fogColor(baseEffects.getFogColor()).skyColor(baseEffects.getSkyColor()).waterColor(baseEffects.getWaterColor()).waterFogColor(baseEffects.getWaterFogColor()).build();
 
-        Biome.BiomeCategory category = event.getCategory();
+        Biome.BiomeCategory category = e.getCategory();
 
         if (category == Biome.BiomeCategory.NETHER || category == Biome.BiomeCategory.THEEND) {
             return;
@@ -65,18 +67,18 @@ public class Whooosh {
         if (WhoooshConfig.Client.INSTANCE.shouldDisplayWind.get()) {
             switch (category) {
                 // LOW
-                case FOREST: event.setEffects(lowWind);
-                case TAIGA: event.setEffects(lowWind);
-                case DESERT: event.setEffects(lowWind);
+                case FOREST: e.setEffects(lowWind);
+                case TAIGA: e.setEffects(lowWind);
+                case DESERT: e.setEffects(lowWind);
                 // MEDIUM
-                case PLAINS: event.setEffects(mediumWind);
-                case SAVANNA: event.setEffects(mediumWind);
+                case PLAINS: e.setEffects(mediumWind);
+                case SAVANNA: e.setEffects(mediumWind);
                 // HIGH
-                case MOUNTAIN: event.setEffects(highWind);
-                case EXTREME_HILLS: event.setEffects(highWind);
-                case ICY: event.setEffects(highWind);
+                case MOUNTAIN: e.setEffects(highWind);
+                case EXTREME_HILLS: e.setEffects(highWind);
+                case ICY: e.setEffects(highWind);
 
-                default: event.setEffects(defaultEffects);
+                default: e.setEffects(defaultEffects);
             }
         }
     }
