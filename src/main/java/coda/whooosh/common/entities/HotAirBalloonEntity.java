@@ -3,8 +3,8 @@ package coda.whooosh.common.entities;
 import coda.whooosh.Whooosh;
 import coda.whooosh.common.WindDirectionSavedData;
 import coda.whooosh.registry.WhoooshItems;
-import net.minecraft.client.Minecraft;
 import net.minecraft.core.Direction;
+import net.minecraft.core.Vec3i;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
@@ -22,7 +22,6 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.Nullable;
 import software.bernie.geckolib3.core.IAnimatable;
@@ -129,10 +128,13 @@ public class HotAirBalloonEntity extends Animal implements IAnimatable, IAnimati
         if (!level.isClientSide) {
             WindDirectionSavedData data = ((ServerLevel) level).getDataStorage().computeIfAbsent(WindDirectionSavedData::new, () -> new WindDirectionSavedData(random), Whooosh.MOD_ID + ".savedata");
 
-            Direction direction = data.getWindDirection(blockPosition().getY(), level);
+            Direction direction = blockPosition().getY() > 300 ? Direction.from2DDataValue(random.nextInt(4)) : data.getWindDirection(blockPosition().getY(), level);
+
+            System.out.println(direction);
 
             if (!isOnGround() && getControllingPassenger() instanceof Player) {
-                setDeltaMovement(getDeltaMovement().add(Vec3.atCenterOf(direction.getNormal())).scale(0.075F));
+                Vec3i normal = direction.getNormal();
+                setDeltaMovement(getDeltaMovement().add(normal.getX(), normal.getY(), normal.getZ()).scale(0.1F));
             }
 
             if (getLitness() > 0) {

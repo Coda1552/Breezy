@@ -1,18 +1,19 @@
 package coda.whooosh;
 
+import coda.whooosh.common.WindDirectionSavedData;
 import coda.whooosh.common.entities.HotAirBalloonEntity;
 import coda.whooosh.registry.WhoooshEntities;
 import coda.whooosh.registry.WhoooshItems;
 import coda.whooosh.registry.WhoooshParticles;
-import net.minecraft.util.profiling.jfr.event.WorldLoadFinishedEvent;
+import net.minecraft.client.Minecraft;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.biome.AmbientParticleSettings;
 import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.biome.BiomeSpecialEffects;
 import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.event.ForgeEventFactory;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.entity.EntityAttributeCreationEvent;
-import net.minecraftforge.event.server.ServerStartedEvent;
 import net.minecraftforge.event.world.BiomeLoadingEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.fml.ModLoadingContext;
@@ -34,6 +35,8 @@ public class Whooosh {
         bus.addListener(this::registerEntityAttributes);
 
         forgeBus.addListener(this::addWindParticles);
+        forgeBus.addListener(this::resetWindDirection);
+
         forgeBus.register(this);
 
         WhoooshParticles.PARTICLES.register(bus);
@@ -48,6 +51,11 @@ public class Whooosh {
     }
 
     private void resetWindDirection(TickEvent.WorldTickEvent e) {
+        Level world = e.world;
+
+        if (world.getDayTime() % 24000 == 0) {
+            WindDirectionSavedData.resetWindDirection(world.random);
+        }
 
     }
 

@@ -13,7 +13,7 @@ import java.util.Random;
 // todo, add wind compass, make wind change from day to day, add sand bags
 public class WindDirectionSavedData extends SavedData {
     private static final int INTERVAL = 12;
-    private final Direction[] directions = new Direction[INTERVAL];
+    private static final Direction[] directions = new Direction[INTERVAL];
 
     public WindDirectionSavedData(Random random) {
         for (int i = 0; i < INTERVAL; ++i) {
@@ -31,6 +31,12 @@ public class WindDirectionSavedData extends SavedData {
 
     public Direction getWindDirection(int height, Level level) {
         return directions[normalize(height, level)];
+    }
+
+    public static void resetWindDirection(Random random) {
+        for (int i = 0; i < INTERVAL; ++i) {
+            directions[i] = Direction.from2DDataValue(random.nextInt(4));
+        }
     }
 
     @Override
