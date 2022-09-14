@@ -5,7 +5,6 @@ import coda.whooosh.common.WindDirectionSavedData;
 import coda.whooosh.registry.WhoooshItems;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Vec3i;
-import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
@@ -67,11 +66,13 @@ public class HotAirBalloonEntity extends Animal implements IAnimatable, IAnimati
             setLitness(0);
         }
 
+        // Flame particle
+        /*
         if (tickCount % 10 == 0 && getLitness() > 0) {
             for (int i = 0; i < getLitness(); i++) {
                 level.addParticle(ParticleTypes.FLAME, getX(), getY() + 2.35D,  getZ(), getDeltaMovement().x, 0.1D, getDeltaMovement().z);
             }
-        }
+        }*/
     }
 
     @Override
