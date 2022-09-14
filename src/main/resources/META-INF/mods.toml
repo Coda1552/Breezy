@@ -2,9 +2,9 @@ modLoader="javafml" #mandatory
 loaderVersion="[39,)" #mandatory This is typically bumped every Minecraft version by Forge. See our download page for lists of versions.
 license="All rights reserved"
 [[mods]] #mandatory
-modId="whooosh" #mandatory
+modId="breezy" #mandatory
 version="${file.jarVersion}" #mandatory
-displayName="Whooosh!" #mandatory
+displayName="breezy!" #mandatory
 credits="HoboJoe" #optional
 authors="Coda"
-description='''Whooosh! adds configurable wind particles.'''
+description='''breezy! adds configurable wind particles.'''
