@@ -21,6 +21,7 @@ import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+// todo- add gust gauge, add sand bags
 @Mod(Breezy.MOD_ID)
 public class Breezy {
     public static final String MOD_ID = "breezy";
