@@ -4,7 +4,7 @@ license="All rights reserved"
 [[mods]] #mandatory
 modId="breezy" #mandatory
 version="${file.jarVersion}" #mandatory
-displayName="breezy!" #mandatory
+displayName="Breezy" #mandatory
 credits="HoboJoe" #optional
 authors="Coda"
-description='''breezy! adds configurable wind particles.'''
+description='''Breezy adds atmospheric wind particles and hot air balloons!'''
