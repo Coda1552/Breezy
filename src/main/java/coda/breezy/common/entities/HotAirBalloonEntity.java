@@ -30,6 +30,7 @@ import software.bernie.geckolib3.core.manager.AnimationFactory;
 
 public class HotAirBalloonEntity extends Animal implements IAnimatable, IAnimationTickable {
     private static final EntityDataAccessor<Integer> LITNESS = SynchedEntityData.defineId(HotAirBalloonEntity.class, EntityDataSerializers.INT);
+    private static final EntityDataAccessor<Integer> SANDBAGS = SynchedEntityData.defineId(HotAirBalloonEntity.class, EntityDataSerializers.INT);
     private final AnimationFactory factory = new AnimationFactory(this);
 
     public HotAirBalloonEntity(EntityType<? extends Animal> type, Level level) {
@@ -48,13 +49,14 @@ public class HotAirBalloonEntity extends Animal implements IAnimatable, IAnimati
     protected void defineSynchedData() {
         super.defineSynchedData();
         this.entityData.define(LITNESS, 0);
+        this.entityData.define(SANDBAGS, 0);
     }
 
     @Override
     public void tick() {
         super.tick();
 
-        if (getLitness() > 0 && tickCount % ((5 / getLitness()) * 40) == 0 && random.nextBoolean()) {
+        if (getLitness() > 0 && tickCount % (getLitness() * 40) == 0 && random.nextBoolean()) {
             setLitness(getLitness() - 1);
         }
 
@@ -87,6 +89,14 @@ public class HotAirBalloonEntity extends Animal implements IAnimatable, IAnimati
                 setLitness(getLitness() + 1);
                 swing(hand);
                 player.getItemInHand(hand).hurtAndBreak(1, player, p -> p.broadcastBreakEvent(player.getUsedItemHand()));
+            }
+        }
+
+        if (getSandbags() < 8 && player.getItemInHand(hand).is(Items.SAND)) {
+            setSandbags(getSandbags() + 1);
+            swing(hand);
+            if (!player.isCreative()) {
+                player.getItemInHand(hand).shrink(1);
             }
         }
 
@@ -125,6 +135,14 @@ public class HotAirBalloonEntity extends Animal implements IAnimatable, IAnimati
         return Math.min(this.entityData.get(LITNESS), 5);
     }
 
+    public void setSandbags(int sandbags) {
+        this.entityData.set(SANDBAGS, sandbags);
+    }
+
+    public int getSandbags() {
+        return Math.min(this.entityData.get(SANDBAGS), 8);
+    }
+
     private Vec3 move(Vec3 pos) {
         if (!level.isClientSide) {
             WindDirectionSavedData data = ((ServerLevel) level).getDataStorage().computeIfAbsent(WindDirectionSavedData::new, () -> new WindDirectionSavedData(random), Breezy.MOD_ID + ".savedata");
@@ -146,6 +164,10 @@ public class HotAirBalloonEntity extends Animal implements IAnimatable, IAnimati
 
             if (!isOnGround() && getLitness() == 0) {
                 setDeltaMovement(getDeltaMovement().add(0, -0.025D, 0));
+            }
+
+            if (getSandbags() > 0) {
+                setDeltaMovement(getDeltaMovement().subtract(0, (getSandbags() + 1) * 0.02D, 0));
             }
 
         }
