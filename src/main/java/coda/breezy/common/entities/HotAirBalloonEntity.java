@@ -100,6 +100,12 @@ public class HotAirBalloonEntity extends Animal implements IAnimatable, IAnimati
             }
         }
 
+        if (getSandbags() > 0 && player.getItemInHand(hand).is(Items.SHEARS)) {
+            setSandbags(getSandbags() - 1);
+            swing(hand);
+            player.getItemInHand(hand).hurtAndBreak(1, player, p -> p.broadcastBreakEvent(player.getUsedItemHand()));
+        }
+
         if (player.isShiftKeyDown()) {
             discard();
             spawnAtLocation(new ItemStack(BreezyItems.HOT_AIR_BALLOON.get()));

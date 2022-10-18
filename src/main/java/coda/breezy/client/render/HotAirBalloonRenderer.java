@@ -9,8 +9,11 @@ import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.resources.ResourceLocation;
 import org.jetbrains.annotations.Nullable;
+import software.bernie.geckolib3.geo.render.built.GeoBone;
 import software.bernie.geckolib3.geo.render.built.GeoModel;
 import software.bernie.geckolib3.renderers.geo.GeoEntityRenderer;
+
+import java.util.Optional;
 
 public class HotAirBalloonRenderer extends GeoEntityRenderer<HotAirBalloonEntity> {
 
@@ -29,14 +32,12 @@ public class HotAirBalloonRenderer extends GeoEntityRenderer<HotAirBalloonEntity
 
         int sandbags = animatable.getSandbags();
 
-        if (sandbags > 0) {
-            for (int i = sandbags; i <= 8; i++) {
-                model.getBone("sandBag" + i).get().setHidden(true);
-            }
-        }
-        else {
-            for (int i = 1; i <= 8; i++) {
-                model.getBone("sandBag" + i).get().setHidden(true);
+        for (int i = 1; i <= 8; ++i) {
+
+            Optional<GeoBone> bone = model.getBone("sandBag" + i);
+
+            if (bone.isPresent()) {
+                bone.get().setHidden(i > sandbags);
             }
         }
     }
