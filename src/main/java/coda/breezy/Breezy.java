@@ -2,6 +2,7 @@ package coda.breezy;
 
 import coda.breezy.common.WindDirectionSavedData;
 import coda.breezy.common.entities.HotAirBalloonEntity;
+import coda.breezy.common.items.GustGaugeItem;
 import coda.breezy.registry.BreezyEntities;
 import coda.breezy.registry.BreezyItems;
 import coda.breezy.registry.BreezyParticles;
@@ -17,32 +18,41 @@ import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.config.ModConfig;
+import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+
+import java.util.ArrayList;
+import java.util.List;
 
 // todo- add gust gauge
 @Mod(Breezy.MOD_ID)
 public class Breezy {
     public static final String MOD_ID = "breezy";
     public static final Logger LOGGER = LogManager.getLogger();
+    public static final List<Runnable> CALLBACKS = new ArrayList<>();
 
     public Breezy() {
         IEventBus bus = FMLJavaModLoadingContext.get().getModEventBus();
         IEventBus forgeBus = MinecraftForge.EVENT_BUS;
 
         bus.addListener(this::registerEntityAttributes);
+        bus.addListener(this::registerClient);
 
         forgeBus.addListener(this::addWindParticles);
         forgeBus.addListener(this::resetWindDirection);
-
-        forgeBus.register(this);
 
         BreezyParticles.PARTICLES.register(bus);
         BreezyEntities.ENTITIES.register(bus);
         BreezyItems.ITEMS.register(bus);
 
         ModLoadingContext.get().registerConfig(ModConfig.Type.CLIENT, BreezyConfig.Client.SPEC);
+    }
+
+    private void registerClient(FMLClientSetupEvent event) {
+        CALLBACKS.forEach(Runnable::run);
+        CALLBACKS.clear();
     }
 
     private void registerEntityAttributes(EntityAttributeCreationEvent e) {
@@ -55,7 +65,6 @@ public class Breezy {
         if (world.getDayTime() % 24000 == 0) {
             WindDirectionSavedData.resetWindDirection(world.random);
         }
-
     }
 
     private void addWindParticles(BiomeLoadingEvent e) {
