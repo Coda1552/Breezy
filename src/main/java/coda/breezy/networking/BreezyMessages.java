@@ -1,7 +1,6 @@
 package coda.breezy.networking;
 
 import coda.breezy.Breezy;
-import coda.breezy.networking.packet.S2CPacket;
 import net.minecraft.client.Minecraft;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
@@ -28,6 +27,7 @@ public class BreezyMessages {
 
         INSTANCE = net;
 
+        // S2CPacket was deleted
         net.messageBuilder(S2CPacket.class, id(), NetworkDirection.PLAY_TO_CLIENT)
                 .decoder(S2CPacket::new)
                 .encoder(S2CPacket::toBytes)
