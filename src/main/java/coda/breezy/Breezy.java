@@ -3,13 +3,29 @@ package coda.breezy;
 import coda.breezy.common.WindDirectionSavedData;
 import coda.breezy.common.entities.HotAirBalloonEntity;
 import coda.breezy.common.items.GustGaugeItem;
+import coda.breezy.networking.BreezyMessages;
+import coda.breezy.networking.packet.S2CPacket;
 import coda.breezy.registry.BreezyEntities;
 import coda.breezy.registry.BreezyItems;
 import coda.breezy.registry.BreezyParticles;
+import net.minecraft.client.multiplayer.ClientLevel;
+import net.minecraft.client.renderer.item.ClampedItemPropertyFunction;
+import net.minecraft.client.renderer.item.ItemProperties;
+import net.minecraft.core.Direction;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.util.Mth;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.decoration.ItemFrame;
+import net.minecraft.world.entity.item.ItemEntity;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.biome.AmbientParticleSettings;
 import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.biome.BiomeSpecialEffects;
+import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.entity.EntityAttributeCreationEvent;
@@ -19,10 +35,12 @@ import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.config.ModConfig;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
+import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -39,6 +57,7 @@ public class Breezy {
 
         bus.addListener(this::registerEntityAttributes);
         bus.addListener(this::registerClient);
+        bus.addListener(this::commonSetup);
 
         forgeBus.addListener(this::addWindParticles);
         forgeBus.addListener(this::resetWindDirection);
@@ -50,9 +69,13 @@ public class Breezy {
         ModLoadingContext.get().registerConfig(ModConfig.Type.CLIENT, BreezyConfig.Client.SPEC);
     }
 
+    private void commonSetup(final FMLCommonSetupEvent event) {
+        BreezyMessages.register();
+        BreezyMessages.sendToClient(new S2CPacket());
+
+    }
+
     private void registerClient(FMLClientSetupEvent event) {
-        CALLBACKS.forEach(Runnable::run);
-        CALLBACKS.clear();
     }
 
     private void registerEntityAttributes(EntityAttributeCreationEvent e) {
@@ -65,6 +88,8 @@ public class Breezy {
         if (world.getDayTime() % 24000 == 0) {
             WindDirectionSavedData.resetWindDirection(world.random);
         }
+
+        System.out.println();
     }
 
     private void addWindParticles(BiomeLoadingEvent e) {
