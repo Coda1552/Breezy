@@ -10,7 +10,7 @@ import net.minecraftforge.registries.ForgeRegistries;
 import net.minecraftforge.registries.RegistryObject;
 
 public class BreezyEntities {
-    public static final DeferredRegister<EntityType<?>> ENTITIES = DeferredRegister.create(ForgeRegistries.ENTITIES, Breezy.MOD_ID);
+    public static final DeferredRegister<EntityType<?>> ENTITIES = DeferredRegister.create(ForgeRegistries.ENTITY_TYPES, Breezy.MOD_ID);
 
     public static final RegistryObject<EntityType<HotAirBalloonEntity>> HOT_AIR_BALLOON = create("hot_air_balloon", EntityType.Builder.of(HotAirBalloonEntity::new, MobCategory.MISC).sized(1.2f, 1.9f));
 

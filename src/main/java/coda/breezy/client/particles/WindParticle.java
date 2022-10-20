@@ -42,7 +42,7 @@ public class WindParticle extends RisingParticle {
         }
 
         public Particle createParticle(SimpleParticleType type, ClientLevel world, double x, double y, double z, double xSpeed, double ySpeed, double zSpeed) {
-            Random random = world.random;
+            Random random = new Random();
             int d = random.nextInt(30) + 40;
             double r = random.nextDouble() * Math.PI * 2;
             double newY = y + random.nextInt(15) + random.nextInt(15);

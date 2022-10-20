@@ -6,7 +6,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.particle.ParticleEngine;
 import net.minecraft.core.particles.ParticleType;
 import net.minecraft.core.particles.SimpleParticleType;
-import net.minecraftforge.client.event.ParticleFactoryRegisterEvent;
+import net.minecraftforge.client.event.RegisterParticleProvidersEvent;
 import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
@@ -24,7 +24,7 @@ public class BreezyParticles {
     public static class RegisterParticleFactories {
 
         @SubscribeEvent(priority = EventPriority.LOWEST)
-        public static void registerParticleTypes(ParticleFactoryRegisterEvent event) {
+        public static void registerParticleTypes(RegisterParticleProvidersEvent event) {
             ParticleEngine engine = Minecraft.getInstance().particleEngine;
             engine.register(WIND.get(), WindParticle.Provider::new);
         }

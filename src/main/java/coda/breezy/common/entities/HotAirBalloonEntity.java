@@ -29,6 +29,8 @@ import software.bernie.geckolib3.core.IAnimationTickable;
 import software.bernie.geckolib3.core.manager.AnimationData;
 import software.bernie.geckolib3.core.manager.AnimationFactory;
 
+import java.util.Random;
+
 public class HotAirBalloonEntity extends Animal implements IAnimatable, IAnimationTickable {
     private static final EntityDataAccessor<Integer> LITNESS = SynchedEntityData.defineId(HotAirBalloonEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Integer> SANDBAGS = SynchedEntityData.defineId(HotAirBalloonEntity.class, EntityDataSerializers.INT);
@@ -151,14 +153,14 @@ public class HotAirBalloonEntity extends Animal implements IAnimatable, IAnimati
     }
 
     private Vec3 move(Vec3 pos) {
-        if (!level.isClientSide) {
-            WindDirectionSavedData data = ((ServerLevel) level).getDataStorage().computeIfAbsent(WindDirectionSavedData::new, () -> new WindDirectionSavedData(random), Breezy.MOD_ID + ".savedata");
+        if (!level.isClientSide()) {
+            WindDirectionSavedData data = ((ServerLevel) getLevel()).getDataStorage().computeIfAbsent(WindDirectionSavedData::new, () -> new WindDirectionSavedData(new Random()), Breezy.MOD_ID + ".savedata");
 
             Direction direction = getBlockY() > 300 ? Direction.from2DDataValue(random.nextInt(4)) : data.getWindDirection(getBlockY(), level);
 
             if (!isOnGround() && getControllingPassenger() instanceof Player) {
                 Vec3i normal = direction.getNormal();
-                setDeltaMovement(getDeltaMovement().add(normal.getX(), normal.getY(), normal.getZ()).scale(0.1F));
+                setDeltaMovement(getDeltaMovement().add(normal.getX(), 5, normal.getZ()).scale(0.1F));
             }
 
             if (getLitness() > 0) {
@@ -177,10 +179,9 @@ public class HotAirBalloonEntity extends Animal implements IAnimatable, IAnimati
                 setDeltaMovement(getDeltaMovement().subtract(0, (getSandbags() + 1) * 0.02D, 0));
             }
 
-        }
-
-        if (getControllingPassenger() == null) {
-            setDeltaMovement(0, -0.05, 0);
+            if (getControllingPassenger() == null) {
+                setDeltaMovement(0, -0.05, 0);
+            }
         }
 
         return pos;

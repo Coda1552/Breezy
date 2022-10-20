@@ -43,9 +43,9 @@ public class BreezyConfig {
         Client(ForgeConfigSpec.Builder builder) {
             builder.push("General");
             shouldDisplayWind = builder.comment("Should wind be displayed?\nDefault: true").define("should_display_wind", true);
-            lowWindFrequency = builder.comment("Wind Frequency for: Forest, Taiga, and Desert biomes\nDefault: 0.025").defineInRange("low_wind_frequency", 0.025, 0.0, 5.0);
-            mediumWindFrequency = builder.comment("Wind Frequency for: Plains and Savanna biomes\nDefault: 0.05").defineInRange("medium_wind_frequency", 0.05, 0.0, 5.0);
-            highWindFrequency = builder.comment("Wind Frequency for: Icy, Extreme Hills, and Mountain biomes\nDefault: 0.075").defineInRange("high_wind_frequency", 0.075, 0.0, 5.0);
+            lowWindFrequency = builder.comment("Wind Frequency for: Forest, Taiga, and Desert biomes\nDefault: 0.005").defineInRange("low_wind_frequency", 0.005, 0.0, 1.0);
+            mediumWindFrequency = builder.comment("Wind Frequency for: Plains and Savanna biomes\nDefault: 0.01").defineInRange("medium_wind_frequency", 0.01, 0.0, 1.0);
+            highWindFrequency = builder.comment("Wind Frequency for: Mountainous biomes\nDefault: 0.015").defineInRange("high_wind_frequency", 0.015, 0.0, 1.0);
             builder.pop();
         }
 
