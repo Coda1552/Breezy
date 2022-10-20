@@ -37,7 +37,7 @@ public class HotAirBalloonItem extends Item {
             if (blockstate.getCollisionShape(world, blockpos).isEmpty()) {
                 blockpos1 = blockpos;
             } else {
-                blockpos1 = blockpos.relative(direction);
+                blockpos1 = blockpos.relative(direction, 0);
             }
 
             ItemStack stack = context.getItemInHand();
@@ -52,7 +52,7 @@ public class HotAirBalloonItem extends Item {
             if (context.getLevel().addFreshEntity(entity) && !context.getPlayer().isCreative()) {
                 itemstack.shrink(1);
             }
-            context.getLevel().playSound(null, entity.blockPosition(), SoundEvents.WOOL_PLACE, SoundSource.PLAYERS, 1, 1);
+            context.getLevel().playSound(null, entity, SoundEvents.WOOL_PLACE, SoundSource.PLAYERS, 1, 1);
 
             return InteractionResult.CONSUME;
         }

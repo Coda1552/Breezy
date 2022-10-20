@@ -154,7 +154,7 @@ public class HotAirBalloonEntity extends Animal implements IAnimatable, IAnimati
         if (!level.isClientSide) {
             WindDirectionSavedData data = ((ServerLevel) level).getDataStorage().computeIfAbsent(WindDirectionSavedData::new, () -> new WindDirectionSavedData(random), Breezy.MOD_ID + ".savedata");
 
-            Direction direction = blockPosition().getY() > 300 ? Direction.from2DDataValue(random.nextInt(4)) : data.getWindDirection(blockPosition().getY(), level);
+            Direction direction = getBlockY() > 300 ? Direction.from2DDataValue(random.nextInt(4)) : data.getWindDirection(getBlockY(), level);
 
             if (!isOnGround() && getControllingPassenger() instanceof Player) {
                 Vec3i normal = direction.getNormal();
