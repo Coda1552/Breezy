@@ -37,7 +37,7 @@ public class HotAirBalloonItem extends Item {
             if (blockstate.getCollisionShape(world, blockpos).isEmpty()) {
                 blockpos1 = blockpos;
             } else {
-                blockpos1 = blockpos.relative(direction, 0);
+                blockpos1 = blockpos.relative(direction, 1);
             }
 
             ItemStack stack = context.getItemInHand();

@@ -21,31 +21,30 @@ public class BreezyBiomeModifier implements BiomeModifier {
         if (phase == Phase.ADD) {
             BiomeSpecialEffectsBuilder effects = builder.getSpecialEffects();
 
-            if (BreezyConfig.Client.INSTANCE.shouldDisplayWind.get()) {
-                if (!biome.is(BiomeTags.IS_OVERWORLD)) return;
+            if (!biome.is(BiomeTags.IS_OVERWORLD)) return;
 
-                var biome1 = biome.unwrapKey().isPresent() ? biome.unwrapKey().get() : Biomes.PLAINS;
+            var biome1 = biome.unwrapKey().isPresent() ? biome.unwrapKey().get() : Biomes.PLAINS;
 
-                AmbientParticleSettings def = new AmbientParticleSettings(BreezyParticles.WIND.get(), 0.0002F);
-                AmbientParticleSettings low = new AmbientParticleSettings(BreezyParticles.WIND.get(), BreezyConfig.Client.INSTANCE.lowWindFrequency.get().floatValue() * 0.015F);
-                AmbientParticleSettings med = new AmbientParticleSettings(BreezyParticles.WIND.get(), BreezyConfig.Client.INSTANCE.mediumWindFrequency.get().floatValue() * 0.015F);
-                AmbientParticleSettings high = new AmbientParticleSettings(BreezyParticles.WIND.get(), BreezyConfig.Client.INSTANCE.highWindFrequency.get().floatValue() * 0.015F);
+            // No config because config isn't loaded yet.
+            AmbientParticleSettings def = new AmbientParticleSettings(BreezyParticles.WIND.get(), 0.0002F);
+            AmbientParticleSettings low = new AmbientParticleSettings(BreezyParticles.WIND.get(), 0.005F * 0.015F);
+            AmbientParticleSettings med = new AmbientParticleSettings(BreezyParticles.WIND.get(), 0.01F * 0.015F);
+            AmbientParticleSettings high = new AmbientParticleSettings(BreezyParticles.WIND.get(), 0.015F * 0.015F);
 
-                if (biome1.equals(Biomes.FOREST) || biome1.equals(Biomes.TAIGA) || biome1.equals(Biomes.DESERT)) {
-                    effects.ambientParticle(low);
-                }
-                else if (biome1.equals(Biomes.PLAINS) || biome1.equals(Biomes.SAVANNA)) {
-                    effects.ambientParticle(med);
-                }
-                else if (biome1.equals(Biomes.SNOWY_SLOPES)
-                        || biome1.equals(Biomes.STONY_PEAKS)
-                        || biome1.equals(Biomes.JAGGED_PEAKS)
-                        || biome1.equals(Biomes.FROZEN_PEAKS)) {
-                    effects.ambientParticle(high);
-                }
-                else {
-                    effects.ambientParticle(def);
-                }
+            if (biome1.equals(Biomes.FOREST) || biome1.equals(Biomes.TAIGA) || biome1.equals(Biomes.DESERT)) {
+                effects.ambientParticle(low);
+            }
+            else if (biome1.equals(Biomes.PLAINS) || biome1.equals(Biomes.SAVANNA)) {
+                effects.ambientParticle(med);
+            }
+            else if (biome1.equals(Biomes.SNOWY_SLOPES)
+                    || biome1.equals(Biomes.STONY_PEAKS)
+                    || biome1.equals(Biomes.JAGGED_PEAKS)
+                    || biome1.equals(Biomes.FROZEN_PEAKS)) {
+                effects.ambientParticle(high);
+            }
+            else {
+                effects.ambientParticle(def);
             }
         }
     }

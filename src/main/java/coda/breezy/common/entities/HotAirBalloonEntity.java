@@ -3,7 +3,9 @@ package coda.breezy.common.entities;
 import coda.breezy.Breezy;
 import coda.breezy.common.WindDirectionSavedData;
 import coda.breezy.registry.BreezyItems;
+import net.minecraft.client.Minecraft;
 import net.minecraft.core.Direction;
+import net.minecraft.core.Holder;
 import net.minecraft.core.Vec3i;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
@@ -22,7 +24,9 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.dimension.LevelStem;
 import net.minecraft.world.phys.Vec3;
+import org.apache.logging.log4j.core.jmx.Server;
 import org.jetbrains.annotations.Nullable;
 import software.bernie.geckolib3.core.IAnimatable;
 import software.bernie.geckolib3.core.IAnimationTickable;
@@ -153,35 +157,38 @@ public class HotAirBalloonEntity extends Animal implements IAnimatable, IAnimati
     }
 
     private Vec3 move(Vec3 pos) {
+
+        WindDirectionSavedData data;
+        Direction direction = Direction.from2DDataValue(random.nextInt(4));
+
         if (!level.isClientSide()) {
-            WindDirectionSavedData data = ((ServerLevel) getLevel()).getDataStorage().computeIfAbsent(WindDirectionSavedData::new, () -> new WindDirectionSavedData(new Random()), Breezy.MOD_ID + ".savedata");
+            data = ((ServerLevel) level).getDataStorage().computeIfAbsent(WindDirectionSavedData::new, () -> new WindDirectionSavedData(new Random()), Breezy.MOD_ID + ".savedata");
+            direction = getBlockY() > 300 ? Direction.from2DDataValue(random.nextInt(4)) : data.getWindDirection(getBlockY(), (ServerLevel) level);
+        }
 
-            Direction direction = getBlockY() > 300 ? Direction.from2DDataValue(random.nextInt(4)) : data.getWindDirection(getBlockY(), level);
+        if (!isOnGround() && getControllingPassenger() instanceof Player) {
+            Vec3i normal = direction.getNormal();
+            setDeltaMovement(getDeltaMovement().add(normal.getX(), 0, normal.getZ()).scale(0.1F));
+        }
 
-            if (!isOnGround() && getControllingPassenger() instanceof Player) {
-                Vec3i normal = direction.getNormal();
-                setDeltaMovement(getDeltaMovement().add(normal.getX(), 5, normal.getZ()).scale(0.1F));
+        if (getLitness() > 0) {
+            setDeltaMovement(getDeltaMovement().add(0, (getLitness() + 1) * 0.02D, 0));
+
+            if (isOnGround()) {
+                setDeltaMovement(getDeltaMovement().add(0D, 1.0D, 0D));
             }
+        }
 
-            if (getLitness() > 0) {
-                setDeltaMovement(getDeltaMovement().add(0, (getLitness() + 1) * 0.02D, 0));
+        if (!isOnGround() && getLitness() == 0) {
+            setDeltaMovement(getDeltaMovement().add(0, -0.025D, 0));
+        }
 
-                if (isOnGround()) {
-                    setDeltaMovement(getDeltaMovement().add(0D, 1.0D, 0D));
-                }
-            }
+        if (getSandbags() > 0) {
+            setDeltaMovement(getDeltaMovement().subtract(0, (getSandbags() + 1) * 0.02D, 0));
+        }
 
-            if (!isOnGround() && getLitness() == 0) {
-                setDeltaMovement(getDeltaMovement().add(0, -0.025D, 0));
-            }
-
-            if (getSandbags() > 0) {
-                setDeltaMovement(getDeltaMovement().subtract(0, (getSandbags() + 1) * 0.02D, 0));
-            }
-
-            if (getControllingPassenger() == null) {
-                setDeltaMovement(0, -0.05, 0);
-            }
+        if (getControllingPassenger() == null) {
+            setDeltaMovement(0, -0.05, 0);
         }
 
         return pos;
