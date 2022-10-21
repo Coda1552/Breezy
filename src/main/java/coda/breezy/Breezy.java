@@ -30,6 +30,8 @@ public class Breezy {
         IEventBus bus = FMLJavaModLoadingContext.get().getModEventBus();
         IEventBus forgeBus = MinecraftForge.EVENT_BUS;
 
+        bus.addListener(this::registerEntityAttributes);
+
         forgeBus.addListener(this::resetWindDirection);
 
         BreezyParticles.PARTICLES.register(bus);
@@ -38,6 +40,10 @@ public class Breezy {
         BreezyBiomeModifiers.BIOME_MODIFIERS.register(bus);
 
         ModLoadingContext.get().registerConfig(ModConfig.Type.CLIENT, BreezyConfig.Client.SPEC);
+    }
+
+    private void registerEntityAttributes(EntityAttributeCreationEvent e) {
+        e.put(BreezyEntities.HOT_AIR_BALLOON.get(), HotAirBalloonEntity.createAttributes().build());
     }
 
     private void resetWindDirection(TickEvent.LevelTickEvent e) {
