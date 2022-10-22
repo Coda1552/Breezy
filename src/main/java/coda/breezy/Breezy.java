@@ -122,8 +122,6 @@ public class Breezy {
                             d3 = 0.5D - (d1 - 0.25D - d2);
                         }
 
-                        System.out.println(dir);
-
                         return Mth.positiveModulo((float)d3, 1.0F);
                     } else {
                         if (this.wobbleRandom.shouldUpdate(i)) {
