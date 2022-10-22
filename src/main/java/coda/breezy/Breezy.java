@@ -96,7 +96,7 @@ public class Breezy {
 
                     long i = clientLevel.getGameTime();
                     if (dir != null) {
-                        boolean flag = livingEntity instanceof Player && ((Player)livingEntity).isLocalPlayer();
+                        boolean flag = livingEntity instanceof Player player && player.isLocalPlayer();
                         double d1 = 0.0D;
                         if (flag) {
                             d1 = livingEntity.getYRot();
@@ -109,8 +109,8 @@ public class Breezy {
                         }
 
                         d1 = Mth.positiveModulo(d1 / 360.0D, 1.0D);
-                        Vec3i norm = dir.getNormal();
-                        double d2 = this.getAngleTo(new Vec3(norm.getX() * 100, norm.getY() * 100, norm.getZ() * 100), entity) / ((float)Math.PI * 2F);
+                        Vec3i norm = entity.blockPosition().offset(dir.getNormal().multiply(100));
+                        double d2 = this.getAngleTo(new Vec3(norm.getX(), norm.getY(), norm.getZ()), entity) / ((float)Math.PI * 2F);
                         double d3;
                         if (flag) {
                             if (this.wobble.shouldUpdate(i)) {
@@ -121,9 +121,9 @@ public class Breezy {
                         } else {
                             d3 = 0.5D - (d1 - 0.25D - d2);
                         }
-    
+
                         System.out.println(dir);
-                        
+
                         return Mth.positiveModulo((float)d3, 1.0F);
                     } else {
                         if (this.wobbleRandom.shouldUpdate(i)) {
