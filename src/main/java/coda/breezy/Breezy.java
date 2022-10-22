@@ -2,7 +2,8 @@ package coda.breezy;
 
 import coda.breezy.common.WindDirectionSavedData;
 import coda.breezy.common.entities.HotAirBalloonEntity;
-import coda.breezy.networking.BreezyMessages;
+import coda.breezy.networking.BreezyNetowrking;
+import coda.breezy.networking.WindDirectionPacket;
 import coda.breezy.registry.BreezyEntities;
 import coda.breezy.registry.BreezyItems;
 import coda.breezy.registry.BreezyParticles;
@@ -10,8 +11,10 @@ import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.renderer.item.ClampedItemPropertyFunction;
 import net.minecraft.client.renderer.item.ItemProperties;
 import net.minecraft.core.Direction;
+import net.minecraft.core.Vec3i;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
@@ -27,6 +30,7 @@ import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.entity.EntityAttributeCreationEvent;
+import net.minecraftforge.event.entity.EntityJoinWorldEvent;
 import net.minecraftforge.event.world.BiomeLoadingEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.fml.ModLoadingContext;
@@ -59,6 +63,7 @@ public class Breezy {
 
         forgeBus.addListener(this::addWindParticles);
         forgeBus.addListener(this::resetWindDirection);
+        forgeBus.addListener(this::syncWindDataOnJoinWorld);
 
         BreezyParticles.PARTICLES.register(bus);
         BreezyEntities.ENTITIES.register(bus);
@@ -68,7 +73,7 @@ public class Breezy {
     }
 
     private void commonSetup(final FMLCommonSetupEvent event) {
-        BreezyMessages.register();
+        BreezyNetowrking.register();
     }
 
     private void registerClient(FMLClientSetupEvent event) {
@@ -85,7 +90,7 @@ public class Breezy {
                         clientLevel = (ClientLevel)entity.level;
                     }
 
-                    WindDirectionSavedData data = ((ServerLevel) entity.getLevel()).getDataStorage().computeIfAbsent(WindDirectionSavedData::new, () -> new WindDirectionSavedData(entity.getLevel().getRandom()), Breezy.MOD_ID + ".savedata");
+                    WindDirectionSavedData data = BreezyNetowrking.CLIENT_CACHE;
 
                     Direction dir = data.getWindDirection(entity.blockPosition().getY(), entity.getLevel());
 
@@ -104,7 +109,8 @@ public class Breezy {
                         }
 
                         d1 = Mth.positiveModulo(d1 / 360.0D, 1.0D);
-                        double d2 = this.getAngleTo(Vec3.atCenterOf(dir.getNormal()), entity) / (double)((float)Math.PI * 2F);
+                        Vec3i norm = dir.getNormal();
+                        double d2 = this.getAngleTo(new Vec3(norm.getX() * 100, norm.getY() * 100, norm.getZ() * 100), entity) / ((float)Math.PI * 2F);
                         double d3;
                         if (flag) {
                             if (this.wobble.shouldUpdate(i)) {
@@ -115,7 +121,9 @@ public class Breezy {
                         } else {
                             d3 = 0.5D - (d1 - 0.25D - d2);
                         }
-
+    
+                        System.out.println(dir);
+                        
                         return Mth.positiveModulo((float)d3, 1.0F);
                     } else {
                         if (this.wobbleRandom.shouldUpdate(i)) {
@@ -172,11 +180,24 @@ public class Breezy {
 
         if (world.getDayTime() % 24000 == 0) {
             WindDirectionSavedData.resetWindDirection(world.random);
+            
+            world.players().forEach(player -> {
+                WindDirectionSavedData data = ((ServerLevel) player.getLevel()).getDataStorage().computeIfAbsent(WindDirectionSavedData::new, () -> new WindDirectionSavedData(player.getLevel().getRandom()), Breezy.MOD_ID + ".savedata");
+                BreezyNetowrking.sendToPlayer(new WindDirectionPacket(data), (ServerPlayer) player);
+            });
         }
-
-        System.out.println();
     }
-
+    
+    public void syncWindDataOnJoinWorld(EntityJoinWorldEvent event) {
+        if (event.getEntity() instanceof Player) {
+            Player player = (Player) event.getEntity();
+            if (!player.level.isClientSide) {
+                WindDirectionSavedData data = ((ServerLevel) player.getLevel()).getDataStorage().computeIfAbsent(WindDirectionSavedData::new, () -> new WindDirectionSavedData(player.getLevel().getRandom()), Breezy.MOD_ID + ".savedata");
+                BreezyNetowrking.sendToPlayer(new WindDirectionPacket(data), (ServerPlayer) player);
+            }
+        }
+    }
+    
     private void addWindParticles(BiomeLoadingEvent e) {
         BiomeSpecialEffects baseEffects = e.getEffects();
 
