@@ -46,7 +46,6 @@ import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 
-// todo- add gust gauge
 @Mod(Breezy.MOD_ID)
 public class Breezy {
     public static final String MOD_ID = "breezy";
