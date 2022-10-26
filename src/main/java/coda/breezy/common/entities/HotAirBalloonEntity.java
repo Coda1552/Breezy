@@ -140,6 +140,7 @@ public class HotAirBalloonEntity extends Animal implements IAnimatable, IAnimati
     public void travel(Vec3 pos) {
         if (isAlive()) {
             move();
+            super.travel(pos);
         }
     }
 
@@ -166,7 +167,7 @@ public class HotAirBalloonEntity extends Animal implements IAnimatable, IAnimati
         if (data != null) {
             Direction direction = blockPosition().getY() > 300 ? Direction.from2DDataValue(rand.nextInt(4)) : data.getWindDirection(blockPosition().getY(), level);
 
-            if (!isOnGround() && getControllingPassenger() instanceof Player) {
+            if (!isOnGround() && getControllingPassenger() instanceof Player && getLitness() > 0) {
                 Vec3i normal = direction.getNormal();
                 setDeltaMovement(getDeltaMovement().add(normal.getX(), 0, normal.getZ()).scale(0.1F));
             }
@@ -180,11 +181,15 @@ public class HotAirBalloonEntity extends Animal implements IAnimatable, IAnimati
             }
 
             if (!isOnGround() && getLitness() == 0) {
-                setDeltaMovement(getDeltaMovement().add(0, -0.025D, 0));
+                setDeltaMovement(getDeltaMovement().add(0, 0.075D, 0));
             }
 
             if (getSandbags() > 0) {
                 setDeltaMovement(getDeltaMovement().subtract(0, (getSandbags() + 1) * 0.02D, 0));
+
+                if (isOnGround()) {
+                    return;
+                }
             }
         }
 
