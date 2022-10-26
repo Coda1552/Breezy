@@ -24,7 +24,7 @@ public class WindDirectionPacket {
 	}
 	
 	public boolean handle(Supplier<NetworkEvent.Context> ctx) {
-		BreezyNetowrking.CLIENT_CACHE = data;
+		BreezyNetworking.CLIENT_CACHE = data;
 		return true;
 	}
 }

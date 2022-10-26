@@ -15,7 +15,7 @@ import net.minecraftforge.network.simple.SimpleChannel;
 import java.util.HashMap;
 import java.util.Map;
 
-public class BreezyNetowrking {
+public class BreezyNetworking {
     private static SimpleChannel INSTANCE;
     private static int packetId = 0;
     

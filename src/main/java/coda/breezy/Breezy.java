@@ -2,7 +2,7 @@ package coda.breezy;
 
 import coda.breezy.common.WindDirectionSavedData;
 import coda.breezy.common.entities.HotAirBalloonEntity;
-import coda.breezy.networking.BreezyNetowrking;
+import coda.breezy.networking.BreezyNetworking;
 import coda.breezy.networking.WindDirectionPacket;
 import coda.breezy.registry.BreezyEntities;
 import coda.breezy.registry.BreezyItems;
@@ -73,7 +73,7 @@ public class Breezy {
     }
 
     private void commonSetup(final FMLCommonSetupEvent event) {
-        BreezyNetowrking.register();
+        BreezyNetworking.register();
     }
 
     private void registerClient(FMLClientSetupEvent event) {
@@ -90,7 +90,7 @@ public class Breezy {
                         clientLevel = (ClientLevel)entity.level;
                     }
 
-                    WindDirectionSavedData data = BreezyNetowrking.CLIENT_CACHE;
+                    WindDirectionSavedData data = BreezyNetworking.CLIENT_CACHE;
 
                     Direction dir = data.getWindDirection(entity.blockPosition().getY(), entity.getLevel());
 
@@ -181,17 +181,16 @@ public class Breezy {
             
             world.players().forEach(player -> {
                 WindDirectionSavedData data = ((ServerLevel) player.getLevel()).getDataStorage().computeIfAbsent(WindDirectionSavedData::new, () -> new WindDirectionSavedData(player.getLevel().getRandom()), Breezy.MOD_ID + ".savedata");
-                BreezyNetowrking.sendToPlayer(new WindDirectionPacket(data), (ServerPlayer) player);
+                BreezyNetworking.sendToPlayer(new WindDirectionPacket(data), (ServerPlayer) player);
             });
         }
     }
     
     public void syncWindDataOnJoinWorld(EntityJoinWorldEvent event) {
-        if (event.getEntity() instanceof Player) {
-            Player player = (Player) event.getEntity();
+        if (event.getEntity() instanceof Player player) {
             if (!player.level.isClientSide) {
                 WindDirectionSavedData data = ((ServerLevel) player.getLevel()).getDataStorage().computeIfAbsent(WindDirectionSavedData::new, () -> new WindDirectionSavedData(player.getLevel().getRandom()), Breezy.MOD_ID + ".savedata");
-                BreezyNetowrking.sendToPlayer(new WindDirectionPacket(data), (ServerPlayer) player);
+                BreezyNetworking.sendToPlayer(new WindDirectionPacket(data), (ServerPlayer) player);
             }
         }
     }
