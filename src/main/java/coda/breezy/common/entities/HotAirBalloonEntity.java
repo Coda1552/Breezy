@@ -2,6 +2,8 @@ package coda.breezy.common.entities;
 
 import coda.breezy.Breezy;
 import coda.breezy.common.WindDirectionSavedData;
+import coda.breezy.networking.BreezyNetworking;
+import coda.breezy.networking.WindDirectionPacket;
 import coda.breezy.registry.BreezyItems;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.Direction;
@@ -11,6 +13,7 @@ import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.tags.ItemTags;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
@@ -136,7 +139,7 @@ public class HotAirBalloonEntity extends Animal implements IAnimatable, IAnimati
     @Override
     public void travel(Vec3 pos) {
         if (isAlive()) {
-            super.travel(move(pos));
+            move();
         }
     }
 
@@ -156,42 +159,39 @@ public class HotAirBalloonEntity extends Animal implements IAnimatable, IAnimati
         return Math.min(this.entityData.get(SANDBAGS), 8);
     }
 
-    private Vec3 move(Vec3 pos) {
+    private void move() {
+        Random rand = new Random();
+        WindDirectionSavedData data = BreezyNetworking.CLIENT_CACHE;
 
-        WindDirectionSavedData data;
-        Direction direction = Direction.from2DDataValue(random.nextInt(4));
+        if (data != null) {
+            Direction direction = blockPosition().getY() > 300 ? Direction.from2DDataValue(rand.nextInt(4)) : data.getWindDirection(blockPosition().getY(), level);
 
-        if (!level.isClientSide()) {
-            data = ((ServerLevel) level).getDataStorage().computeIfAbsent(WindDirectionSavedData::new, () -> new WindDirectionSavedData(new Random()), Breezy.MOD_ID + ".savedata");
-            direction = getBlockY() > 300 ? Direction.from2DDataValue(random.nextInt(4)) : data.getWindDirection(getBlockY(), (ServerLevel) level);
-        }
-
-        if (!isOnGround() && getControllingPassenger() instanceof Player) {
-            Vec3i normal = direction.getNormal();
-            setDeltaMovement(getDeltaMovement().add(normal.getX(), 0, normal.getZ()).scale(0.1F));
-        }
-
-        if (getLitness() > 0) {
-            setDeltaMovement(getDeltaMovement().add(0, (getLitness() + 1) * 0.02D, 0));
-
-            if (isOnGround()) {
-                setDeltaMovement(getDeltaMovement().add(0D, 1.0D, 0D));
+            if (!isOnGround() && getControllingPassenger() instanceof Player) {
+                Vec3i normal = direction.getNormal();
+                setDeltaMovement(getDeltaMovement().add(normal.getX(), 0, normal.getZ()).scale(0.1F));
             }
-        }
 
-        if (!isOnGround() && getLitness() == 0) {
-            setDeltaMovement(getDeltaMovement().add(0, -0.025D, 0));
-        }
+            if (getLitness() > 0) {
+                setDeltaMovement(getDeltaMovement().add(0, (getLitness() + 1) * 0.02D, 0));
 
-        if (getSandbags() > 0) {
-            setDeltaMovement(getDeltaMovement().subtract(0, (getSandbags() + 1) * 0.02D, 0));
+                if (isOnGround()) {
+                    setDeltaMovement(getDeltaMovement().add(0D, 1.0D, 0D));
+                }
+            }
+
+            if (!isOnGround() && getLitness() == 0) {
+                setDeltaMovement(getDeltaMovement().add(0, -0.025D, 0));
+            }
+
+            if (getSandbags() > 0) {
+                setDeltaMovement(getDeltaMovement().subtract(0, (getSandbags() + 1) * 0.02D, 0));
+            }
         }
 
         if (getControllingPassenger() == null) {
             setDeltaMovement(0, -0.05, 0);
         }
 
-        return pos;
     }
 
     @Override

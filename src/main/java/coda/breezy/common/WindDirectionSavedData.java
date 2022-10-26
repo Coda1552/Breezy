@@ -5,7 +5,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.IntTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
-import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.saveddata.SavedData;
 
 import java.util.Random;
@@ -28,7 +28,7 @@ public class WindDirectionSavedData extends SavedData {
         }
     }
 
-    public Direction getWindDirection(int height, ServerLevel level) {
+    public Direction getWindDirection(int height, Level level) {
         return directions[normalize(height, level)];
     }
 
@@ -48,7 +48,7 @@ public class WindDirectionSavedData extends SavedData {
         return tag;
     }
 
-    private int normalize(int height, ServerLevel level) {
+    private int normalize(int height, Level level) {
         return ((height - level.getMinBuildHeight()) * INTERVAL) / (level.getMaxBuildHeight() - level.getMinBuildHeight());
     }
 }
