@@ -130,7 +130,8 @@ public class HotAirBalloonEntity extends Animal implements IAnimatable, IAnimati
     @Override
     public void travel(Vec3 pos) {
         if (isAlive()) {
-            super.travel(move(pos));
+            move();
+            super.travel(pos);
         }
     }
 
@@ -150,7 +151,7 @@ public class HotAirBalloonEntity extends Animal implements IAnimatable, IAnimati
         return Math.min(this.entityData.get(SANDBAGS), 8);
     }
 
-    private Vec3 move(Vec3 pos) {
+    private void move() {
         if (!level.isClientSide) {
             WindDirectionSavedData data = ((ServerLevel) level).getDataStorage().computeIfAbsent(WindDirectionSavedData::new, () -> new WindDirectionSavedData(random), Breezy.MOD_ID + ".savedata");
 
@@ -175,15 +176,16 @@ public class HotAirBalloonEntity extends Animal implements IAnimatable, IAnimati
 
             if (getSandbags() > 0) {
                 setDeltaMovement(getDeltaMovement().subtract(0, (getSandbags() + 1) * 0.02D, 0));
-            }
 
+                if (isOnGround()) {
+                    return;
+                }
+            }
         }
 
         if (getControllingPassenger() == null) {
             setDeltaMovement(0, -0.05, 0);
         }
-
-        return pos;
     }
 
     @Override
