@@ -11,7 +11,7 @@ import net.minecraft.world.level.saveddata.SavedData;
 import java.util.Random;
 
 public class WindDirectionSavedData extends SavedData {
-    private static final int INTERVAL = 12;
+    private static final int INTERVAL = 24;
     private static final Direction[] directions = new Direction[INTERVAL];
 
     public WindDirectionSavedData(Random random) {
@@ -49,6 +49,6 @@ public class WindDirectionSavedData extends SavedData {
     }
 
     private int normalize(int height, Level level) {
-        return ((height - level.getMinBuildHeight()) * INTERVAL) / (level.getMaxBuildHeight() - level.getMinBuildHeight());
+        return height > 700 ? 0 : ((height - level.getMinBuildHeight()) * INTERVAL) / ((level.getMaxBuildHeight() - level.getMinBuildHeight()) * 2);
     }
 }
