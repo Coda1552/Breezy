@@ -29,6 +29,8 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.dimension.LevelStem;
 import net.minecraft.world.phys.Vec3;
+import net.minecraftforge.common.Tags;
+import net.minecraftforge.common.data.ForgeItemTagsProvider;
 import org.apache.logging.log4j.core.jmx.Server;
 import org.jetbrains.annotations.Nullable;
 import software.bernie.geckolib3.core.IAnimatable;
@@ -110,7 +112,7 @@ public class HotAirBalloonEntity extends Animal implements IAnimatable, IAnimati
             }
         }
 
-        if (getSandbags() > 0 && player.getItemInHand(hand).is(Items.SHEARS)) {
+        if (getSandbags() > 0 && player.getItemInHand(hand).is(Tags.Items.SHEARS)) {
             setSandbags(getSandbags() - 1);
             swing(hand);
             player.getItemInHand(hand).hurtAndBreak(1, player, p -> p.broadcastBreakEvent(player.getUsedItemHand()));
@@ -165,7 +167,7 @@ public class HotAirBalloonEntity extends Animal implements IAnimatable, IAnimati
         WindDirectionSavedData data = BreezyNetworking.CLIENT_CACHE;
 
         if (data != null) {
-            Direction direction = blockPosition().getY() > 300 ? Direction.from2DDataValue(rand.nextInt(4)) : data.getWindDirection(blockPosition().getY(), level);
+            Direction direction = blockPosition().getY() > 704 ? Direction.from2DDataValue(rand.nextInt(4)) : data.getWindDirection(blockPosition().getY(), level);
 
             if (!isOnGround() && getControllingPassenger() instanceof Player && getLitness() > 0) {
                 Vec3i normal = direction.getNormal();
