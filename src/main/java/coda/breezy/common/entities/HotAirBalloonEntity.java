@@ -5,7 +5,6 @@ import coda.breezy.common.WindDirectionSavedData;
 import coda.breezy.registry.BreezyItems;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Vec3i;
-import net.minecraft.core.particles.ParticleOptions;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
@@ -20,7 +19,6 @@ import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.goal.FloatGoal;
-import net.minecraft.world.entity.ai.targeting.TargetingConditions;
 import net.minecraft.world.entity.animal.Animal;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.projectile.AbstractArrow;
@@ -28,6 +26,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
+import net.minecraftforge.common.Tags;
 import org.jetbrains.annotations.Nullable;
 import software.bernie.geckolib3.core.IAnimatable;
 import software.bernie.geckolib3.core.IAnimationTickable;
@@ -126,7 +125,7 @@ public class HotAirBalloonEntity extends Animal implements IAnimatable, IAnimati
             }
         }
 
-        if (getSandbags() > 0 && player.getItemInHand(hand).is(Items.SHEARS)) {
+        if (getSandbags() > 0 && player.getItemInHand(hand).is(Tags.Items.SHEARS)) {
             playSound(SoundEvents.SHEEP_SHEAR, 1.0F, 1.0F);
             setSandbags(getSandbags() - 1);
             swing(hand);
@@ -182,7 +181,7 @@ public class HotAirBalloonEntity extends Animal implements IAnimatable, IAnimati
         if (!level.isClientSide) {
             WindDirectionSavedData data = ((ServerLevel) level).getDataStorage().computeIfAbsent(WindDirectionSavedData::new, () -> new WindDirectionSavedData(random), Breezy.MOD_ID + ".savedata");
 
-            Direction direction = blockPosition().getY() > 300 ? Direction.from2DDataValue(random.nextInt(4)) : data.getWindDirection(blockPosition().getY(), level);
+            Direction direction = data.getWindDirection(blockPosition().getY(), level);
 
             if (!isOnGround() && getControllingPassenger() instanceof Player) {
                 Vec3i normal = direction.getNormal();
@@ -237,13 +236,7 @@ public class HotAirBalloonEntity extends Animal implements IAnimatable, IAnimati
 
     @Override
     public boolean hurt(DamageSource source, float amount) {
-        //if (source.getDirectEntity() instanceof AbstractArrow arrow) {
-        //    return source == DamageSource.arrow(arrow, arrow.getOwner());
-        //}
-        //else {
-        //    return source == DamageSource.OUT_OF_WORLD;
-        //}
-        return true;
+        return source == DamageSource.OUT_OF_WORLD;
     }
 
     @Nullable
