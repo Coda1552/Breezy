@@ -5,10 +5,13 @@ import coda.breezy.common.WindDirectionSavedData;
 import coda.breezy.registry.BreezyItems;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Vec3i;
+import net.minecraft.core.particles.ParticleOptions;
+import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.sounds.SoundEvents;
 import net.minecraft.tags.ItemTags;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
@@ -17,8 +20,10 @@ import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.goal.FloatGoal;
+import net.minecraft.world.entity.ai.targeting.TargetingConditions;
 import net.minecraft.world.entity.animal.Animal;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.entity.projectile.AbstractArrow;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
@@ -28,6 +33,8 @@ import software.bernie.geckolib3.core.IAnimatable;
 import software.bernie.geckolib3.core.IAnimationTickable;
 import software.bernie.geckolib3.core.manager.AnimationData;
 import software.bernie.geckolib3.core.manager.AnimationFactory;
+
+import java.util.List;
 
 public class HotAirBalloonEntity extends Animal implements IAnimatable, IAnimationTickable {
     private static final EntityDataAccessor<Integer> LITNESS = SynchedEntityData.defineId(HotAirBalloonEntity.class, EntityDataSerializers.INT);
@@ -69,6 +76,22 @@ public class HotAirBalloonEntity extends Animal implements IAnimatable, IAnimati
             setLitness(0);
         }
 
+        List<AbstractArrow> list = this.level.getEntitiesOfClass(AbstractArrow.class,getBoundingBox().inflate(1.01F));
+
+//        if (!list.isEmpty()) {
+            for (AbstractArrow arrow : list) {
+                if (!arrow.inGround) {
+                    discard();
+                    playSound(SoundEvents.GENERIC_EXPLODE, 0.25F, 3.0F);
+                    arrow.discard();
+                    // todo - fix partciles
+                    for (int i = 0; i < 10; i++) {
+                        level.addParticle(ParticleTypes.EXPLOSION, getRandomX(1.0D), getRandomY(), getRandomZ(1.0D), 0, 0, 0);
+                    }
+                }
+//            }
+        }
+
         // Flame particle
         /*
         if (tickCount % 10 == 0 && getLitness() > 0) {
@@ -87,6 +110,7 @@ public class HotAirBalloonEntity extends Animal implements IAnimatable, IAnimati
 
         if (getLitness() < 5 && isVehicle() && getControllingPassenger().is(player)) {
             if (player.getItemInHand(hand).is(Items.FLINT_AND_STEEL)) {
+                playSound(SoundEvents.FIRECHARGE_USE, 0.2F, 1.0F);
                 setLitness(getLitness() + 1);
                 swing(hand);
                 player.getItemInHand(hand).hurtAndBreak(1, player, p -> p.broadcastBreakEvent(player.getUsedItemHand()));
@@ -94,6 +118,7 @@ public class HotAirBalloonEntity extends Animal implements IAnimatable, IAnimati
         }
 
         if (getSandbags() < 8 && player.getItemInHand(hand).is(ItemTags.SAND)) {
+            playSound(SoundEvents.SAND_PLACE, 1.0F, 1.0F);
             setSandbags(getSandbags() + 1);
             swing(hand);
             if (!player.isCreative()) {
@@ -102,6 +127,7 @@ public class HotAirBalloonEntity extends Animal implements IAnimatable, IAnimati
         }
 
         if (getSandbags() > 0 && player.getItemInHand(hand).is(Items.SHEARS)) {
+            playSound(SoundEvents.SHEEP_SHEAR, 1.0F, 1.0F);
             setSandbags(getSandbags() - 1);
             swing(hand);
             player.getItemInHand(hand).hurtAndBreak(1, player, p -> p.broadcastBreakEvent(player.getUsedItemHand()));
@@ -109,6 +135,7 @@ public class HotAirBalloonEntity extends Animal implements IAnimatable, IAnimati
 
         if (player.isShiftKeyDown()) {
             discard();
+            playSound(SoundEvents.ITEM_FRAME_REMOVE_ITEM, 1.0F, 1.0F);
             spawnAtLocation(new ItemStack(BreezyItems.HOT_AIR_BALLOON.get()));
             return InteractionResult.PASS;
         }
@@ -210,7 +237,13 @@ public class HotAirBalloonEntity extends Animal implements IAnimatable, IAnimati
 
     @Override
     public boolean hurt(DamageSource source, float amount) {
-        return source == DamageSource.OUT_OF_WORLD;
+        //if (source.getDirectEntity() instanceof AbstractArrow arrow) {
+        //    return source == DamageSource.arrow(arrow, arrow.getOwner());
+        //}
+        //else {
+        //    return source == DamageSource.OUT_OF_WORLD;
+        //}
+        return true;
     }
 
     @Nullable
