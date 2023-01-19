@@ -14,6 +14,7 @@ import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.sounds.SoundEvents;
 import net.minecraft.tags.ItemTags;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
@@ -100,6 +101,7 @@ public class HotAirBalloonEntity extends Animal implements IAnimatable, IAnimati
             if (player.getItemInHand(hand).is(Items.FLINT_AND_STEEL)) {
                 setLitness(getLitness() + 1);
                 swing(hand);
+                playSound(SoundEvents.CAMPFIRE_CRACKLE, 1.0F, 1.0F);
                 player.getItemInHand(hand).hurtAndBreak(1, player, p -> p.broadcastBreakEvent(player.getUsedItemHand()));
             }
         }
@@ -107,6 +109,7 @@ public class HotAirBalloonEntity extends Animal implements IAnimatable, IAnimati
         if (getSandbags() < 8 && player.getItemInHand(hand).is(ItemTags.SAND)) {
             setSandbags(getSandbags() + 1);
             swing(hand);
+            playSound(SoundEvents.SAND_PLACE, 1.0F, 1.0F);
             if (!player.isCreative()) {
                 player.getItemInHand(hand).shrink(1);
             }
@@ -115,12 +118,14 @@ public class HotAirBalloonEntity extends Animal implements IAnimatable, IAnimati
         if (getSandbags() > 0 && player.getItemInHand(hand).is(Tags.Items.SHEARS)) {
             setSandbags(getSandbags() - 1);
             swing(hand);
+            playSound(SoundEvents.SHEEP_SHEAR, 1.0F, 1.0F);
             player.getItemInHand(hand).hurtAndBreak(1, player, p -> p.broadcastBreakEvent(player.getUsedItemHand()));
         }
 
         if (player.isShiftKeyDown()) {
             discard();
             spawnAtLocation(new ItemStack(BreezyItems.HOT_AIR_BALLOON.get()));
+            playSound(SoundEvents.ITEM_FRAME_BREAK, 1.0F, 1.0F);
             return InteractionResult.PASS;
         }
 
@@ -141,7 +146,7 @@ public class HotAirBalloonEntity extends Animal implements IAnimatable, IAnimati
     @Override
     public void travel(Vec3 pos) {
         if (isAlive()) {
-            move();
+            move(pos);
             super.travel(pos);
         }
     }
@@ -162,8 +167,7 @@ public class HotAirBalloonEntity extends Animal implements IAnimatable, IAnimati
         return Math.min(this.entityData.get(SANDBAGS), 8);
     }
 
-    private void move() {
-        Random rand = new Random();
+    private Vec3 move(Vec3 pos) {
         WindDirectionSavedData data = BreezyNetworking.CLIENT_CACHE;
 
         if (data != null) {
@@ -189,15 +193,17 @@ public class HotAirBalloonEntity extends Animal implements IAnimatable, IAnimati
             if (getSandbags() > 0) {
                 setDeltaMovement(getDeltaMovement().subtract(0, (getSandbags() + 1) * 0.02D, 0));
 
-                if (isOnGround()) {
+                /*if (isOnGround()) {
                     return;
-                }
+                }*/
             }
         }
 
         if (getControllingPassenger() == null) {
             setDeltaMovement(0, -0.05, 0);
         }
+
+        return pos;
 
     }
 

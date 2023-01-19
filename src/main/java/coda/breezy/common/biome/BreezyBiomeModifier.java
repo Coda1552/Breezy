@@ -1,6 +1,5 @@
 package coda.breezy.common.biome;
 
-import coda.breezy.BreezyConfig;
 import coda.breezy.registry.BreezyBiomeModifiers;
 import coda.breezy.registry.BreezyParticles;
 import com.mojang.serialization.Codec;
