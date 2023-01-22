@@ -49,6 +49,6 @@ public class WindDirectionSavedData extends SavedData {
     }
 
     private int normalize(int height, Level level) {
-        return height > 700 ? 0 : ((height - level.getMinBuildHeight()) * INTERVAL) / ((level.getMaxBuildHeight() - level.getMinBuildHeight()) * 2);
+        return height > 700 || height < 0 ? 0 : ((height - level.getMinBuildHeight()) * INTERVAL) / ((level.getMaxBuildHeight() - level.getMinBuildHeight()) * 2);
     }
 }

@@ -109,7 +109,7 @@ public class HotAirBalloonEntity extends Animal implements IAnimatable, IAnimati
 
         if (getLitness() < 5 && isVehicle() && getControllingPassenger().is(player)) {
             if (player.getItemInHand(hand).is(Items.FLINT_AND_STEEL)) {
-                playSound(SoundEvents.FIRECHARGE_USE, 0.2F, 1.0F);
+                playSound(SoundEvents.CAMPFIRE_CRACKLE, 1.0F, 1.0F);
                 setLitness(getLitness() + 1);
                 swing(hand);
                 player.getItemInHand(hand).hurtAndBreak(1, player, p -> p.broadcastBreakEvent(player.getUsedItemHand()));
@@ -134,7 +134,7 @@ public class HotAirBalloonEntity extends Animal implements IAnimatable, IAnimati
 
         if (player.isShiftKeyDown()) {
             discard();
-            playSound(SoundEvents.ITEM_FRAME_REMOVE_ITEM, 1.0F, 1.0F);
+            playSound(SoundEvents.ITEM_FRAME_BREAK, 1.0F, 1.0F);
             spawnAtLocation(new ItemStack(BreezyItems.HOT_AIR_BALLOON.get()));
             return InteractionResult.PASS;
         }
