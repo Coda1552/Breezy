@@ -3,6 +3,7 @@ package coda.breezy.client.model;
 import coda.breezy.common.entities.HotAirBalloonEntity;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
+import com.mojang.math.Vector3f;
 import net.minecraft.client.model.EntityModel;
 import net.minecraft.client.model.geom.ModelPart;
 import net.minecraft.client.model.geom.PartPose;
@@ -103,11 +104,19 @@ public class HotAirBalloonModel<T extends HotAirBalloonEntity> extends EntityMod
 
 	@Override
 	public void renderToBuffer(PoseStack poseStack, VertexConsumer vertexConsumer, int packedLight, int packedOverlay, float red, float green, float blue, float alpha) {
+		poseStack.pushPose();
+		poseStack.mulPose(Vector3f.XP.rotationDegrees(180.0F));
+		poseStack.translate(0.0F, -1.5F, 0.0F);
+
 		balloon.render(poseStack, vertexConsumer, packedLight, packedOverlay, red, green, blue, alpha);
 		sandBags.render(poseStack, vertexConsumer, packedLight, packedOverlay, red, green, blue, alpha);
+
+		poseStack.popPose();
+
 	}
 
 	@Override
 	public void setupAnim(T p_102618_, float p_102619_, float p_102620_, float p_102621_, float p_102622_, float p_102623_) {
+
 	}
 }

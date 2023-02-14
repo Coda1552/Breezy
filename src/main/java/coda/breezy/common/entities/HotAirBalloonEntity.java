@@ -66,9 +66,12 @@ public class HotAirBalloonEntity extends Entity {
 
     @Override
     public InteractionResult interact(Player player, InteractionHand hand) {
-
         if (player.getItemInHand(hand).isEmpty()) {
-            player.startRiding(this);
+            if (!this.level.isClientSide) {
+                return player.startRiding(this) ? InteractionResult.CONSUME : InteractionResult.PASS;
+            } else {
+                return InteractionResult.SUCCESS;
+            }
         }
 
         if (getLitness() < 5 && isVehicle() && getControllingPassenger().is(player)) {

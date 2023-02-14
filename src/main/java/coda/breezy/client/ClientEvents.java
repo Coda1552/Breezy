@@ -30,7 +30,7 @@ import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 
 import javax.annotation.Nullable;
 
-@Mod.EventBusSubscriber(modid = Breezy.MOD_ID, bus = Mod.EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
+@Mod.EventBusSubscriber(modid = Breezy.MOD_ID, bus = Mod.EventBusSubscriber.Bus.MOD)
 public class ClientEvents {
     public static final ModelLayerLocation BALLOON_MODEL = new ModelLayerLocation(new ResourceLocation(Breezy.MOD_ID, "balloon"), "main");
 

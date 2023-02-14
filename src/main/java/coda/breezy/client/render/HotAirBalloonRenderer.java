@@ -6,13 +6,18 @@ import coda.breezy.client.model.HotAirBalloonModel;
 import coda.breezy.common.entities.HotAirBalloonEntity;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
+import net.minecraft.client.model.BoatModel;
 import net.minecraft.client.model.Model;
+import net.minecraft.client.model.geom.ModelLayerLocation;
+import net.minecraft.client.model.geom.ModelLayers;
 import net.minecraft.client.model.geom.ModelPart;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
+import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.entity.vehicle.Boat;
 import org.jetbrains.annotations.Nullable;
 import software.bernie.geckolib3.geo.render.built.GeoBone;
 import software.bernie.geckolib3.geo.render.built.GeoModel;
@@ -30,13 +35,18 @@ public class HotAirBalloonRenderer extends EntityRenderer<HotAirBalloonEntity> {
     }
 
     @Override
-    public ResourceLocation getTextureLocation(HotAirBalloonEntity p_114482_) {
+    public ResourceLocation getTextureLocation(HotAirBalloonEntity entity) {
         return TEX;
     }
 
     @Override
-    public void render(HotAirBalloonEntity entity, float p_114486_, float p_114487_, PoseStack p_114488_, MultiBufferSource p_114489_, int p_114490_) {
-        super.render(entity, p_114486_, p_114487_, p_114488_, p_114489_, p_114490_);
+    public void render(HotAirBalloonEntity entity, float p_114486_, float partialTick, PoseStack stack, MultiBufferSource source, int p_114490_) {
+        super.render(entity, p_114486_, partialTick, stack, source, p_114490_);
+
+        model.prepareMobModel(entity, 0.0F, 0.0F, partialTick);
+        model.setupAnim(entity, 0.0F, 0.0F, entity.tickCount + partialTick, 0.0F, 0.0F);
+
+        model.renderToBuffer(stack, source.getBuffer(RenderType.entityTranslucent(TEX)), p_114490_, OverlayTexture.NO_OVERLAY, 1.0F, 1.0F, 1.0F, 1.0F);
 
         int sandbags = entity.getSandbags();
 
