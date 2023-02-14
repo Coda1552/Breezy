@@ -1,7 +1,6 @@
 package coda.breezy;
 
 import coda.breezy.common.WindDirectionSavedData;
-import coda.breezy.common.entities.HotAirBalloonEntity;
 import coda.breezy.networking.BreezyNetworking;
 import coda.breezy.networking.WindDirectionPacket;
 import coda.breezy.registry.BreezyBiomeModifiers;
@@ -14,7 +13,6 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.TickEvent;
-import net.minecraftforge.event.entity.EntityAttributeCreationEvent;
 import net.minecraftforge.event.entity.EntityJoinLevelEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.fml.ModLoadingContext;
@@ -36,7 +34,6 @@ public class Breezy {
         IEventBus bus = FMLJavaModLoadingContext.get().getModEventBus();
         IEventBus forgeBus = MinecraftForge.EVENT_BUS;
 
-        bus.addListener(this::registerEntityAttributes);
         bus.addListener(this::commonSetup);
 
         forgeBus.addListener(this::resetWindDirection);
@@ -54,14 +51,10 @@ public class Breezy {
         BreezyNetworking.register();
     }
 
-    private void registerEntityAttributes(EntityAttributeCreationEvent e) {
-        e.put(BreezyEntities.HOT_AIR_BALLOON.get(), HotAirBalloonEntity.createAttributes().build());
-    }
-
     private void resetWindDirection(TickEvent.LevelTickEvent e) {
         Level world = e.level;
 
-        if (world.getDayTime() % 24000 == 0) {
+        if (!world.isClientSide && world.getDayTime() % 24000 == 0) {
             WindDirectionSavedData.resetWindDirection(new Random());
 
             world.players().forEach(player -> {

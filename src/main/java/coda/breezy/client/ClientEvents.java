@@ -1,11 +1,13 @@
 package coda.breezy.client;
 
 import coda.breezy.Breezy;
+import coda.breezy.client.model.HotAirBalloonModel;
 import coda.breezy.client.render.HotAirBalloonRenderer;
 import coda.breezy.common.WindDirectionSavedData;
 import coda.breezy.networking.BreezyNetworking;
 import coda.breezy.registry.BreezyEntities;
 import coda.breezy.registry.BreezyItems;
+import net.minecraft.client.model.geom.ModelLayerLocation;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.renderer.item.ClampedItemPropertyFunction;
 import net.minecraft.client.renderer.item.ItemProperties;
@@ -30,14 +32,20 @@ import javax.annotation.Nullable;
 
 @Mod.EventBusSubscriber(modid = Breezy.MOD_ID, bus = Mod.EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
 public class ClientEvents {
-    
+    public static final ModelLayerLocation BALLOON_MODEL = new ModelLayerLocation(new ResourceLocation(Breezy.MOD_ID, "balloon"), "main");
+
     @SubscribeEvent
-    public static void registerEntityRenders(EntityRenderersEvent.RegisterRenderers event) {
-        event.registerEntityRenderer(BreezyEntities.HOT_AIR_BALLOON.get(), HotAirBalloonRenderer::new);
+    public static void registerEntityRenders(EntityRenderersEvent.RegisterRenderers e) {
+        e.registerEntityRenderer(BreezyEntities.HOT_AIR_BALLOON.get(), HotAirBalloonRenderer::new);
     }
 
     @SubscribeEvent
-    public static void registerClient(final FMLClientSetupEvent event) {
+    public static void registerModelLayers(EntityRenderersEvent.RegisterLayerDefinitions e) {
+        e.registerLayerDefinition(BALLOON_MODEL, HotAirBalloonModel::createBodyLayer);
+    }
+
+    @SubscribeEvent
+    public static void registerClient(final FMLClientSetupEvent e) {
         ItemProperties.register(BreezyItems.GUST_GAUGE.get(), new ResourceLocation("angle"), new ClampedItemPropertyFunction() {
             private final CompassWobble wobble = new CompassWobble();
             private final CompassWobble wobbleRandom = new CompassWobble();

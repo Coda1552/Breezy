@@ -1,66 +1,40 @@
 package coda.breezy.common.entities;
 
-import coda.breezy.Breezy;
 import coda.breezy.common.WindDirectionSavedData;
 import coda.breezy.networking.BreezyNetworking;
-import coda.breezy.networking.WindDirectionPacket;
-import coda.breezy.registry.BreezyItems;
-import net.minecraft.client.Minecraft;
+import coda.breezy.registry.BreezyTags;
+import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.core.Holder;
 import net.minecraft.core.Vec3i;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.protocol.Packet;
+import net.minecraft.network.protocol.game.ClientboundAddEntityPacket;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
-import net.minecraft.server.level.ServerLevel;
-import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.tags.ItemTags;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.*;
-import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
-import net.minecraft.world.entity.ai.attributes.Attributes;
-import net.minecraft.world.entity.ai.goal.FloatGoal;
-import net.minecraft.world.entity.animal.Animal;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
+import net.minecraft.world.entity.vehicle.DismountHelper;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.dimension.LevelStem;
+import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.common.Tags;
-import net.minecraftforge.common.data.ForgeItemTagsProvider;
-import org.apache.logging.log4j.core.jmx.Server;
 import org.jetbrains.annotations.Nullable;
-import software.bernie.geckolib3.core.IAnimatable;
-import software.bernie.geckolib3.core.IAnimationTickable;
-import software.bernie.geckolib3.core.manager.AnimationData;
-import software.bernie.geckolib3.core.manager.AnimationFactory;
 
-import java.util.Random;
-
-public class HotAirBalloonEntity extends Animal implements IAnimatable, IAnimationTickable {
+public class HotAirBalloonEntity extends Entity {
     private static final EntityDataAccessor<Integer> LITNESS = SynchedEntityData.defineId(HotAirBalloonEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Integer> SANDBAGS = SynchedEntityData.defineId(HotAirBalloonEntity.class, EntityDataSerializers.INT);
-    private final AnimationFactory factory = new AnimationFactory(this);
 
-    public HotAirBalloonEntity(EntityType<? extends Animal> type, Level level) {
+    public HotAirBalloonEntity(EntityType<? extends Entity> type, Level level) {
         super(type, level);
     }
 
-    @Override
-    protected void registerGoals() {
-        this.goalSelector.addGoal(0, new FloatGoal(this));
-    }
-
-    public static AttributeSupplier.Builder createAttributes() {
-        return Mob.createMobAttributes().add(Attributes.MOVEMENT_SPEED, 0.5F).add(Attributes.ATTACK_DAMAGE, 0.0F);
-    }
-
     protected void defineSynchedData() {
-        super.defineSynchedData();
         this.entityData.define(LITNESS, 0);
         this.entityData.define(SANDBAGS, 0);
     }
@@ -91,51 +65,112 @@ public class HotAirBalloonEntity extends Animal implements IAnimatable, IAnimati
     }
 
     @Override
-    public InteractionResult mobInteract(Player player, InteractionHand hand) {
+    public InteractionResult interact(Player player, InteractionHand hand) {
 
         if (player.getItemInHand(hand).isEmpty()) {
             player.startRiding(this);
         }
 
         if (getLitness() < 5 && isVehicle() && getControllingPassenger().is(player)) {
-            if (player.getItemInHand(hand).is(Items.FLINT_AND_STEEL)) {
+            if (player.getItemInHand(hand).is(BreezyTags.IGNITION_SOURCES)) {
                 setLitness(getLitness() + 1);
-                swing(hand);
                 playSound(SoundEvents.CAMPFIRE_CRACKLE, 1.0F, 1.0F);
                 player.getItemInHand(hand).hurtAndBreak(1, player, p -> p.broadcastBreakEvent(player.getUsedItemHand()));
+                return InteractionResult.SUCCESS;
             }
         }
 
         if (getSandbags() < 8 && player.getItemInHand(hand).is(ItemTags.SAND)) {
             setSandbags(getSandbags() + 1);
-            swing(hand);
             playSound(SoundEvents.SAND_PLACE, 1.0F, 1.0F);
+
             if (!player.isCreative()) {
                 player.getItemInHand(hand).shrink(1);
             }
+
+            return InteractionResult.SUCCESS;
         }
 
         if (getSandbags() > 0 && player.getItemInHand(hand).is(Tags.Items.SHEARS)) {
             setSandbags(getSandbags() - 1);
-            swing(hand);
             playSound(SoundEvents.SHEEP_SHEAR, 1.0F, 1.0F);
             player.getItemInHand(hand).hurtAndBreak(1, player, p -> p.broadcastBreakEvent(player.getUsedItemHand()));
+
+            return InteractionResult.SUCCESS;
         }
 
-        if (player.isShiftKeyDown()) {
+        return super.interact(player, hand);
+    }
+
+
+    // todo - make this code run when the balloon is broken
+
+/*        if (player.isShiftKeyDown()) {
             discard();
             spawnAtLocation(new ItemStack(BreezyItems.HOT_AIR_BALLOON.get()));
             playSound(SoundEvents.ITEM_FRAME_BREAK, 1.0F, 1.0F);
-            return InteractionResult.PASS;
-        }
 
-        return super.mobInteract(player, hand);
-    }
+            return InteractionResult.SUCCESS;
+        }*/
 
     @Override
     @Nullable
     public Entity getControllingPassenger() {
         return this.getPassengers().isEmpty() ? null : this.getPassengers().get(0);
+    }
+
+    @Nullable
+    private Vec3 getDismountLocationInDirection(Vec3 p_30562_, LivingEntity p_30563_) {
+        double d0 = this.getX() + p_30562_.x;
+        double d1 = this.getBoundingBox().minY;
+        double d2 = this.getZ() + p_30562_.z;
+        BlockPos.MutableBlockPos blockpos$mutableblockpos = new BlockPos.MutableBlockPos();
+
+        for(Pose pose : p_30563_.getDismountPoses()) {
+            blockpos$mutableblockpos.set(d0, d1, d2);
+            double d3 = this.getBoundingBox().maxY + 0.75D;
+
+            while(true) {
+                double d4 = this.level.getBlockFloorHeight(blockpos$mutableblockpos);
+                if ((double)blockpos$mutableblockpos.getY() + d4 > d3) {
+                    break;
+                }
+
+                if (DismountHelper.isBlockFloorValid(d4)) {
+                    AABB aabb = p_30563_.getLocalBoundsForPose(pose);
+                    Vec3 vec3 = new Vec3(d0, (double)blockpos$mutableblockpos.getY() + d4, d2);
+                    if (DismountHelper.canDismountTo(this.level, p_30563_, aabb.move(vec3))) {
+                        p_30563_.setPose(pose);
+                        return vec3;
+                    }
+                }
+
+                blockpos$mutableblockpos.move(Direction.UP);
+                if (!((double)blockpos$mutableblockpos.getY() < d3)) {
+                    break;
+                }
+            }
+        }
+
+        return null;
+    }
+
+    @Override
+    public Vec3 getDismountLocationForPassenger(LivingEntity p_30576_) {
+        Vec3 vec3 = getCollisionHorizontalEscapeVector(this.getBbWidth(), p_30576_.getBbWidth(), this.getYRot() + (p_30576_.getMainArm() == HumanoidArm.RIGHT ? 90.0F : -90.0F));
+        Vec3 vec31 = this.getDismountLocationInDirection(vec3, p_30576_);
+        if (vec31 != null) {
+            return vec31;
+        } else {
+            Vec3 vec32 = getCollisionHorizontalEscapeVector(this.getBbWidth(), p_30576_.getBbWidth(), this.getYRot() + (p_30576_.getMainArm() == HumanoidArm.LEFT ? 90.0F : -90.0F));
+            Vec3 vec33 = this.getDismountLocationInDirection(vec32, p_30576_);
+            return vec33 != null ? vec33 : this.position();
+        }
+    }
+
+    @Override
+    public Packet<?> getAddEntityPacket() {
+        return new ClientboundAddEntityPacket(this);
     }
 
     @Override
@@ -144,7 +179,7 @@ public class HotAirBalloonEntity extends Animal implements IAnimatable, IAnimati
     }
 
     @Override
-    public void travel(Vec3 pos) {
+    public void move(MoverType type, Vec3 pos) {
         if (isAlive()) {
             WindDirectionSavedData data = BreezyNetworking.CLIENT_CACHE;
 
@@ -181,7 +216,7 @@ public class HotAirBalloonEntity extends Animal implements IAnimatable, IAnimati
             else {
                 setDeltaMovement(0, -0.05, 0);
             }
-            super.travel(pos);
+            super.move(type, pos);
         }
     }
 
@@ -201,15 +236,17 @@ public class HotAirBalloonEntity extends Animal implements IAnimatable, IAnimati
         return Math.min(this.entityData.get(SANDBAGS), 8);
     }
 
-    private Vec3 move(Vec3 pos) {
-
-        return pos;
-
-    }
-
     @Override
     public boolean causeFallDamage(float pFallDistance, float pMultiplier, DamageSource pSource) {
         return true;
+    }
+
+    @Override
+    protected void readAdditionalSaveData(CompoundTag p_20052_) {
+    }
+
+    @Override
+    protected void addAdditionalSaveData(CompoundTag p_20139_) {
     }
 
     @Override
@@ -218,36 +255,17 @@ public class HotAirBalloonEntity extends Animal implements IAnimatable, IAnimati
     }
 
     @Override
-    public Vec3 getDismountLocationForPassenger(LivingEntity p_20123_) {
-        return new Vec3(this.getX(), this.getY(), this.getZ());
-    }
-
-    @Override
     public boolean shouldRiderSit() {
         return false;
     }
 
     @Override
-    public boolean hurt(DamageSource source, float amount) {
-        return source == DamageSource.OUT_OF_WORLD;
+    public boolean skipAttackInteraction(Entity attacker) {
+        if (attacker instanceof Player player) {
+            return true;
+        } else {
+            return false;
+        }
     }
 
-    @Nullable
-    @Override
-    public AgeableMob getBreedOffspring(ServerLevel p_146743_, AgeableMob p_146744_) {
-        return null;
-    }
-
-    @Override
-    public void registerControllers(AnimationData data) {}
-
-    @Override
-    public AnimationFactory getFactory() {
-        return factory;
-    }
-
-    @Override
-    public int tickTimer() {
-        return tickCount;
-    }
 }
