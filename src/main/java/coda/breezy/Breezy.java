@@ -64,12 +64,10 @@ public class Breezy {
         }
     }
 
-    public void syncWindDataOnJoinWorld(EntityJoinLevelEvent event) {
-        if (event.getEntity() instanceof Player player) {
-            if (!player.level.isClientSide) {
-                WindDirectionSavedData data = ((ServerLevel) player.getLevel()).getDataStorage().computeIfAbsent(WindDirectionSavedData::new, () -> new WindDirectionSavedData(new Random()), Breezy.MOD_ID + ".savedata");
-                BreezyNetworking.sendToPlayer(new WindDirectionPacket(data), (ServerPlayer) player);
-            }
+    public void syncWindDataOnJoinWorld(EntityJoinLevelEvent e) {
+        if (e.getEntity() instanceof Player player && !e.getLevel().isClientSide) {
+            WindDirectionSavedData data = ((ServerLevel) player.getLevel()).getDataStorage().computeIfAbsent(WindDirectionSavedData::new, () -> new WindDirectionSavedData(new Random()), Breezy.MOD_ID + ".savedata");
+            BreezyNetworking.sendToPlayer(new WindDirectionPacket(data), (ServerPlayer) player);
         }
     }
 }

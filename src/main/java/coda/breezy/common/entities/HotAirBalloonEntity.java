@@ -24,6 +24,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.common.Tags;
+import net.minecraftforge.fluids.FluidType;
 import org.jetbrains.annotations.Nullable;
 
 public class HotAirBalloonEntity extends Entity {
@@ -32,6 +33,7 @@ public class HotAirBalloonEntity extends Entity {
 
     public HotAirBalloonEntity(EntityType<? extends Entity> type, Level level) {
         super(type, level);
+        this.blocksBuilding = true;
     }
 
     protected void defineSynchedData() {
@@ -65,44 +67,91 @@ public class HotAirBalloonEntity extends Entity {
     }
 
     @Override
+    public InteractionResult interactAt(Player player, Vec3 vec, InteractionHand hand) {
+        if (player.getItemInHand(hand).isEmpty()) {
+            if (!this.level.isClientSide) {
+                return player.startRiding(this) ? InteractionResult.CONSUME : InteractionResult.PASS;
+            }
+            else {
+                return InteractionResult.SUCCESS;
+            }
+        }
+
+        if (hasPassenger(this)) {
+            if (getLitness() < 5 && isVehicle() && getControllingPassenger().is(player)) {
+                if (player.getItemInHand(hand).is(BreezyTags.IGNITION_SOURCES)) {
+                    setLitness(getLitness() + 1);
+                    playSound(SoundEvents.CAMPFIRE_CRACKLE, 1.0F, 1.0F);
+                    player.getItemInHand(hand).hurtAndBreak(1, player, p -> p.broadcastBreakEvent(player.getUsedItemHand()));
+                    return InteractionResult.SUCCESS;
+                }
+            }
+
+            if (getSandbags() < 8 && player.getItemInHand(hand).is(ItemTags.SAND)) {
+                setSandbags(getSandbags() + 1);
+                playSound(SoundEvents.SAND_PLACE, 1.0F, 1.0F);
+
+                if (!player.isCreative()) {
+                    player.getItemInHand(hand).shrink(1);
+                }
+
+                return InteractionResult.SUCCESS;
+            }
+
+            if (getSandbags() > 0 && player.getItemInHand(hand).is(Tags.Items.SHEARS)) {
+                setSandbags(getSandbags() - 1);
+                playSound(SoundEvents.SHEEP_SHEAR, 1.0F, 1.0F);
+                player.getItemInHand(hand).hurtAndBreak(1, player, p -> p.broadcastBreakEvent(player.getUsedItemHand()));
+
+                return InteractionResult.SUCCESS;
+            }
+        }
+
+        return InteractionResult.PASS;
+    }
+
+    @Override
     public InteractionResult interact(Player player, InteractionHand hand) {
         if (player.getItemInHand(hand).isEmpty()) {
             if (!this.level.isClientSide) {
                 return player.startRiding(this) ? InteractionResult.CONSUME : InteractionResult.PASS;
-            } else {
+            }
+            else {
                 return InteractionResult.SUCCESS;
             }
         }
 
-        if (getLitness() < 5 && isVehicle() && getControllingPassenger().is(player)) {
-            if (player.getItemInHand(hand).is(BreezyTags.IGNITION_SOURCES)) {
-                setLitness(getLitness() + 1);
-                playSound(SoundEvents.CAMPFIRE_CRACKLE, 1.0F, 1.0F);
+        if (hasPassenger(this)) {
+            if (getLitness() < 5 && isVehicle() && getControllingPassenger().is(player)) {
+                if (player.getItemInHand(hand).is(BreezyTags.IGNITION_SOURCES)) {
+                    setLitness(getLitness() + 1);
+                    playSound(SoundEvents.CAMPFIRE_CRACKLE, 1.0F, 1.0F);
+                    player.getItemInHand(hand).hurtAndBreak(1, player, p -> p.broadcastBreakEvent(player.getUsedItemHand()));
+                    return InteractionResult.SUCCESS;
+                }
+            }
+
+            if (getSandbags() < 8 && player.getItemInHand(hand).is(ItemTags.SAND)) {
+                setSandbags(getSandbags() + 1);
+                playSound(SoundEvents.SAND_PLACE, 1.0F, 1.0F);
+
+                if (!player.isCreative()) {
+                    player.getItemInHand(hand).shrink(1);
+                }
+
+                return InteractionResult.SUCCESS;
+            }
+
+            if (getSandbags() > 0 && player.getItemInHand(hand).is(Tags.Items.SHEARS)) {
+                setSandbags(getSandbags() - 1);
+                playSound(SoundEvents.SHEEP_SHEAR, 1.0F, 1.0F);
                 player.getItemInHand(hand).hurtAndBreak(1, player, p -> p.broadcastBreakEvent(player.getUsedItemHand()));
+
                 return InteractionResult.SUCCESS;
             }
         }
 
-        if (getSandbags() < 8 && player.getItemInHand(hand).is(ItemTags.SAND)) {
-            setSandbags(getSandbags() + 1);
-            playSound(SoundEvents.SAND_PLACE, 1.0F, 1.0F);
-
-            if (!player.isCreative()) {
-                player.getItemInHand(hand).shrink(1);
-            }
-
-            return InteractionResult.SUCCESS;
-        }
-
-        if (getSandbags() > 0 && player.getItemInHand(hand).is(Tags.Items.SHEARS)) {
-            setSandbags(getSandbags() - 1);
-            playSound(SoundEvents.SHEEP_SHEAR, 1.0F, 1.0F);
-            player.getItemInHand(hand).hurtAndBreak(1, player, p -> p.broadcastBreakEvent(player.getUsedItemHand()));
-
-            return InteractionResult.SUCCESS;
-        }
-
-        return super.interact(player, hand);
+        return InteractionResult.SUCCESS;
     }
 
 
@@ -115,6 +164,11 @@ public class HotAirBalloonEntity extends Entity {
 
             return InteractionResult.SUCCESS;
         }*/
+
+    @Override
+    public boolean mayInteract(Level p_146843_, BlockPos p_146844_) {
+        return true;
+    }
 
     @Override
     @Nullable
@@ -178,6 +232,27 @@ public class HotAirBalloonEntity extends Entity {
 
     @Override
     public boolean canRiderInteract() {
+        return true;
+    }
+
+    public boolean canCollideWith(Entity p_38376_) {
+        return canVehicleCollide(this, p_38376_);
+    }
+
+    public static boolean canVehicleCollide(Entity p_38324_, Entity p_38325_) {
+        return (p_38325_.canBeCollidedWith() || p_38325_.isPushable()) && !p_38324_.isPassengerOfSameVehicle(p_38325_);
+    }
+
+    public boolean canBeCollidedWith() {
+        return true;
+    }
+
+    public boolean isPushable() {
+        return true;
+    }
+
+    @Override
+    public boolean isPushedByFluid(FluidType type) {
         return true;
     }
 
@@ -261,14 +336,4 @@ public class HotAirBalloonEntity extends Entity {
     public boolean shouldRiderSit() {
         return false;
     }
-
-    @Override
-    public boolean skipAttackInteraction(Entity attacker) {
-        if (attacker instanceof Player player) {
-            return true;
-        } else {
-            return false;
-        }
-    }
-
 }
