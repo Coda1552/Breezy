@@ -5,6 +5,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.IntTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
+import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.saveddata.SavedData;
 
@@ -14,7 +15,7 @@ public class WindDirectionSavedData extends SavedData {
     private static final int INTERVAL = 24;
     private static final Direction[] directions = new Direction[INTERVAL];
 
-    public WindDirectionSavedData(Random random) {
+    public WindDirectionSavedData(RandomSource random) {
         for (int i = 0; i < INTERVAL; ++i) {
             directions[i] = Direction.from2DDataValue(random.nextInt(4));
         }

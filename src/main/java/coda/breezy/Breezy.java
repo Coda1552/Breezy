@@ -7,6 +7,7 @@ import coda.breezy.registry.BreezyBiomeModifiers;
 import coda.breezy.registry.BreezyEntities;
 import coda.breezy.registry.BreezyItems;
 import coda.breezy.registry.BreezyParticles;
+import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
@@ -58,7 +59,11 @@ public class Breezy {
             WindDirectionSavedData.resetWindDirection(new Random());
 
             world.players().forEach(player -> {
-                WindDirectionSavedData data = ((ServerLevel) player.getLevel()).getDataStorage().computeIfAbsent(WindDirectionSavedData::new, () -> new WindDirectionSavedData(new Random()), Breezy.MOD_ID + ".savedata");
+                Level level = player.getLevel();
+
+                if (level.isClientSide) return;
+
+                WindDirectionSavedData data = ((ServerLevel) level).getDataStorage().computeIfAbsent(WindDirectionSavedData::new, () -> new WindDirectionSavedData(level.getRandom()), Breezy.MOD_ID + ".savedata");
                 BreezyNetworking.sendToPlayer(new WindDirectionPacket(data), (ServerPlayer) player);
             });
         }
@@ -66,7 +71,7 @@ public class Breezy {
 
     public void syncWindDataOnJoinWorld(EntityJoinLevelEvent e) {
         if (e.getEntity() instanceof Player player && !e.getLevel().isClientSide) {
-            WindDirectionSavedData data = ((ServerLevel) player.getLevel()).getDataStorage().computeIfAbsent(WindDirectionSavedData::new, () -> new WindDirectionSavedData(new Random()), Breezy.MOD_ID + ".savedata");
+            WindDirectionSavedData data = ((ServerLevel) player.getLevel()).getDataStorage().computeIfAbsent(WindDirectionSavedData::new, () -> new WindDirectionSavedData(e.getLevel().getRandom()), Breezy.MOD_ID + ".savedata");
             BreezyNetworking.sendToPlayer(new WindDirectionPacket(data), (ServerPlayer) player);
         }
     }
