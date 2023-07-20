@@ -85,7 +85,7 @@ public class Breezy {
             WindDirectionSavedData.resetWindDirection(world.random);
             
             world.players().forEach(player -> {
-                var level = player.getLevel();
+                Level level = player.getLevel();
 
                 if (level.isClientSide) return;
                 
