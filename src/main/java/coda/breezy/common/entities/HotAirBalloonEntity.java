@@ -384,9 +384,12 @@ public class HotAirBalloonEntity extends LivingEntity implements IAnimatable {
                         }*/
                     }
                 }
+                else {
+                    setDeltaMovement(0, -0.075D, 0);
+                }
             }
             else {
-                setDeltaMovement(0, -0.05, 0);
+                setDeltaMovement(0, -0.075D, 0);
             }
             super.travel(p_21280_);
         }
