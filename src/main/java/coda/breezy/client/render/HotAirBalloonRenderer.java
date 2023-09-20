@@ -1,23 +1,16 @@
 package coda.breezy.client.render;
 
 import coda.breezy.Breezy;
-import coda.breezy.client.ClientEvents;
 import coda.breezy.client.model.HotAirBalloonModel;
 import coda.breezy.common.entities.HotAirBalloonEntity;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
-import net.minecraft.client.model.BoatModel;
-import net.minecraft.client.model.Model;
-import net.minecraft.client.model.geom.ModelLayerLocation;
-import net.minecraft.client.model.geom.ModelLayers;
-import net.minecraft.client.model.geom.ModelPart;
+import com.mojang.math.Vector3f;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
-import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
-import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.entity.vehicle.Boat;
+import net.minecraft.util.Mth;
 import org.jetbrains.annotations.Nullable;
 import software.bernie.geckolib3.geo.render.built.GeoBone;
 import software.bernie.geckolib3.geo.render.built.GeoModel;
@@ -25,35 +18,53 @@ import software.bernie.geckolib3.renderers.geo.GeoEntityRenderer;
 
 import java.util.Optional;
 
-public class HotAirBalloonRenderer extends EntityRenderer<HotAirBalloonEntity> {
-    private static final ResourceLocation TEX = new ResourceLocation(Breezy.MOD_ID, "textures/entity/hot_air_balloon.png");
-    private final HotAirBalloonModel<HotAirBalloonEntity> model;
+public class HotAirBalloonRenderer extends GeoEntityRenderer<HotAirBalloonEntity> {
 
-    public HotAirBalloonRenderer(EntityRendererProvider.Context context) {
-        super(context);
-        model = new HotAirBalloonModel<>(context.bakeLayer(ClientEvents.BALLOON_MODEL));
+    public HotAirBalloonRenderer(EntityRendererProvider.Context renderManager) {
+        super(renderManager, new HotAirBalloonModel());
     }
 
     @Override
-    public ResourceLocation getTextureLocation(HotAirBalloonEntity entity) {
-        return TEX;
+    public RenderType getRenderType(HotAirBalloonEntity animatable, float partialTick, PoseStack poseStack, @Nullable MultiBufferSource bufferSource, @Nullable VertexConsumer buffer, int packedLight, ResourceLocation texture) {
+        return RenderType.entityTranslucent(texture);
     }
 
     @Override
-    public void render(HotAirBalloonEntity entity, float p_114486_, float partialTick, PoseStack stack, MultiBufferSource source, int p_114490_) {
-        super.render(entity, p_114486_, partialTick, stack, source, p_114490_);
+    public void render(HotAirBalloonEntity animatable, float entityYaw, float partialTick, PoseStack poseStack, MultiBufferSource bufferSource, int packedLight) {
+        poseStack.pushPose();
 
-        model.prepareMobModel(entity, 0.0F, 0.0F, partialTick);
-        model.setupAnim(entity, 0.0F, 0.0F, entity.tickCount + partialTick, 0.0F, 0.0F);
+        float f = (float)animatable.getHurtTime() - partialTick;
+        float f1 = animatable.getDamage() - partialTick;
+        if (f1 < 0.0F) {
+            f1 = 0.0F;
+        }
 
-        model.renderToBuffer(stack, source.getBuffer(RenderType.entityTranslucent(TEX)), p_114490_, OverlayTexture.NO_OVERLAY, 1.0F, 1.0F, 1.0F, 1.0F);
+        if (f > 0.0F) {
+            poseStack.mulPose(Vector3f.XP.rotationDegrees(Mth.sin(f) * f1 / 10.0F * (float)animatable.getHurtDir()));
+        }
 
-        int sandbags = entity.getSandbags();
+        super.render(animatable, entityYaw, partialTick, poseStack, bufferSource, packedLight);
+
+        poseStack.popPose();
+
+    }
+
+    @Override
+    public void renderEarly(HotAirBalloonEntity animatable, PoseStack poseStack, float partialTick, MultiBufferSource bufferSource, VertexConsumer buffer, int packedLight, int packedOverlay, float red, float green, float blue, float partialTicks) {
+        GeoModel model = getGeoModelProvider().getModel(new ResourceLocation(Breezy.MOD_ID, "geo/hot_air_balloon.geo.json"));
 
         for (int i = 1; i <= 8; i++) {
-            ModelPart sandBagsPart = model.sandBags.getChild("sandBag" + i);
-
-            sandBagsPart.visible = i > sandbags;
+            Optional<GeoBone> arm = model.getBone("sandBag" + i);
+            arm.ifPresent(geoBone -> geoBone.setHidden(true));
         }
+
+        for (int i = 1; i <= animatable.getSandbags(); i++) {
+            Optional<GeoBone> arm = model.getBone("sandBag" + i);
+
+            arm.ifPresent(geoBone -> geoBone.setHidden(false));
+        }
+
+        super.renderEarly(animatable, poseStack, partialTick, bufferSource, buffer, packedLight, packedOverlay, red, green, blue, partialTicks);
     }
+
 }

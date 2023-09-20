@@ -32,16 +32,10 @@ import javax.annotation.Nullable;
 
 @Mod.EventBusSubscriber(modid = Breezy.MOD_ID, bus = Mod.EventBusSubscriber.Bus.MOD)
 public class ClientEvents {
-    public static final ModelLayerLocation BALLOON_MODEL = new ModelLayerLocation(new ResourceLocation(Breezy.MOD_ID, "balloon"), "main");
 
     @SubscribeEvent
     public static void registerEntityRenders(EntityRenderersEvent.RegisterRenderers e) {
         e.registerEntityRenderer(BreezyEntities.HOT_AIR_BALLOON.get(), HotAirBalloonRenderer::new);
-    }
-
-    @SubscribeEvent
-    public static void registerModelLayers(EntityRenderersEvent.RegisterLayerDefinitions e) {
-        e.registerLayerDefinition(BALLOON_MODEL, HotAirBalloonModel::createBodyLayer);
     }
 
     @SubscribeEvent

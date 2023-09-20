@@ -2,7 +2,9 @@ package coda.breezy.common.entities;
 
 import coda.breezy.common.WindDirectionSavedData;
 import coda.breezy.networking.BreezyNetworking;
+import coda.breezy.registry.BreezyItems;
 import coda.breezy.registry.BreezyTags;
+import com.google.common.collect.ImmutableList;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Vec3i;
@@ -18,27 +20,122 @@ import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.*;
+import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
+import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.vehicle.DismountHelper;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.level.GameRules;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.gameevent.GameEvent;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.common.Tags;
 import net.minecraftforge.fluids.FluidType;
 import org.jetbrains.annotations.Nullable;
+import software.bernie.geckolib3.core.IAnimatable;
+import software.bernie.geckolib3.core.manager.AnimationData;
+import software.bernie.geckolib3.core.manager.AnimationFactory;
+import software.bernie.geckolib3.util.GeckoLibUtil;
 
-public class HotAirBalloonEntity extends Entity {
+import java.util.Collections;
+
+public class HotAirBalloonEntity extends LivingEntity implements IAnimatable {
     private static final EntityDataAccessor<Integer> LITNESS = SynchedEntityData.defineId(HotAirBalloonEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Integer> SANDBAGS = SynchedEntityData.defineId(HotAirBalloonEntity.class, EntityDataSerializers.INT);
+    private static final EntityDataAccessor<Integer> DATA_ID_HURT = SynchedEntityData.defineId(HotAirBalloonEntity.class, EntityDataSerializers.INT);
+    private static final EntityDataAccessor<Integer> DATA_ID_HURTDIR = SynchedEntityData.defineId(HotAirBalloonEntity.class, EntityDataSerializers.INT);
+    private static final EntityDataAccessor<Float> DATA_ID_DAMAGE = SynchedEntityData.defineId(HotAirBalloonEntity.class, EntityDataSerializers.FLOAT);
 
-    public HotAirBalloonEntity(EntityType<? extends Entity> type, Level level) {
+    public HotAirBalloonEntity(EntityType<? extends LivingEntity> type, Level level) {
         super(type, level);
-        this.blocksBuilding = true;
+    }
+
+    public static AttributeSupplier.Builder createAttributes() {
+        return Mob.createMobAttributes().add(Attributes.MOVEMENT_SPEED, 0.5F).add(Attributes.ATTACK_DAMAGE, 0.0F);
     }
 
     protected void defineSynchedData() {
+        super.defineSynchedData();
         this.entityData.define(LITNESS, 0);
         this.entityData.define(SANDBAGS, 0);
+        this.entityData.define(DATA_ID_HURT, 0);
+        this.entityData.define(DATA_ID_HURTDIR, 1);
+        this.entityData.define(DATA_ID_DAMAGE, 0.0F);
+    }
+
+    @Override
+    public boolean canBeSeenAsEnemy() {
+        return false;
+    }
+
+    public void setDamage(float p_38110_) {
+        this.entityData.set(DATA_ID_DAMAGE, p_38110_);
+    }
+
+    public float getDamage() {
+        return this.entityData.get(DATA_ID_DAMAGE);
+    }
+
+    public void setHurtTime(int p_38155_) {
+        this.entityData.set(DATA_ID_HURT, p_38155_);
+    }
+
+    public int getHurtTime() {
+        return this.entityData.get(DATA_ID_HURT);
+    }
+
+    public void setHurtDir(int p_38161_) {
+        this.entityData.set(DATA_ID_HURTDIR, p_38161_);
+    }
+
+    public int getHurtDir() {
+        return this.entityData.get(DATA_ID_HURTDIR);
+    }
+
+    public void animateHurt() {
+        this.setHurtDir(-this.getHurtDir());
+        this.setHurtTime(10);
+        this.setDamage(this.getDamage() + this.getDamage() * 10.0F);
+    }
+
+    @Override
+    public boolean hurt(DamageSource p_38319_, float p_38320_) {
+        if (this.isInvulnerableTo(p_38319_)) {
+            return false;
+        } else if (!this.level.isClientSide && !this.isRemoved()) {
+            this.setHurtDir(-this.getHurtDir());
+            this.setHurtTime(10);
+            this.setDamage(this.getDamage() + p_38320_ * 10.0F);
+            this.markHurt();
+            this.gameEvent(GameEvent.ENTITY_DAMAGE, p_38319_.getEntity());
+            boolean flag = p_38319_.getEntity() instanceof Player && ((Player)p_38319_.getEntity()).getAbilities().instabuild;
+            if (flag || this.getDamage() > 40.0F) {
+                if (!flag && this.level.getGameRules().getBoolean(GameRules.RULE_DOENTITYDROPS)) {
+                    this.destroy();
+                }
+
+                this.discard();
+            }
+
+            return true;
+        } else {
+            return true;
+        }
+    }
+
+    public void destroy() {
+        this.discard();
+        if (this.level.getGameRules().getBoolean(GameRules.RULE_DOENTITYDROPS)) {
+            ItemStack itemstack = new ItemStack(BreezyItems.HOT_AIR_BALLOON.get());
+            if (this.hasCustomName()) {
+                itemstack.setHoverName(this.getCustomName());
+            }
+
+            this.spawnAtLocation(itemstack);
+        }
+
     }
 
     @Override
@@ -55,6 +152,14 @@ public class HotAirBalloonEntity extends Entity {
 
         if (isInWaterOrRain()) {
             setLitness(0);
+        }
+
+        if (this.getHurtTime() > 0) {
+            this.setHurtTime(this.getHurtTime() - 1);
+        }
+
+        if (this.getDamage() > 0.0F) {
+            this.setDamage(this.getDamage() - 1.0F);
         }
 
         // Flame particle
@@ -77,7 +182,7 @@ public class HotAirBalloonEntity extends Entity {
             }
         }
 
-        if (hasPassenger(this)) {
+        if (!getPassengers().isEmpty()) {
             if (getLitness() < 5 && isVehicle() && getControllingPassenger().is(player)) {
                 if (player.getItemInHand(hand).is(BreezyTags.IGNITION_SOURCES)) {
                     setLitness(getLitness() + 1);
@@ -151,23 +256,15 @@ public class HotAirBalloonEntity extends Entity {
             }
         }
 
-        return InteractionResult.SUCCESS;
-    }
-
-
-    // todo - make this code run when the balloon is broken
-
-/*        if (player.isShiftKeyDown()) {
+        if (!hasPassenger(this) && player.isShiftKeyDown()) {
             discard();
             spawnAtLocation(new ItemStack(BreezyItems.HOT_AIR_BALLOON.get()));
             playSound(SoundEvents.ITEM_FRAME_BREAK, 1.0F, 1.0F);
 
             return InteractionResult.SUCCESS;
-        }*/
+        }
 
-    @Override
-    public boolean mayInteract(Level p_146843_, BlockPos p_146844_) {
-        return true;
+        return InteractionResult.SUCCESS;
     }
 
     @Override
@@ -243,12 +340,9 @@ public class HotAirBalloonEntity extends Entity {
         return (p_38325_.canBeCollidedWith() || p_38325_.isPushable()) && !p_38324_.isPassengerOfSameVehicle(p_38325_);
     }
 
-    public boolean canBeCollidedWith() {
-        return true;
-    }
-
-    public boolean isPushable() {
-        return true;
+    @Override
+    public HumanoidArm getMainArm() {
+        return null;
     }
 
     @Override
@@ -316,15 +410,21 @@ public class HotAirBalloonEntity extends Entity {
 
     @Override
     public boolean causeFallDamage(float pFallDistance, float pMultiplier, DamageSource pSource) {
-        return true;
+        return false;
     }
 
     @Override
-    protected void readAdditionalSaveData(CompoundTag p_20052_) {
+    public Iterable<ItemStack> getArmorSlots() {
+        return Collections.emptyList();
     }
 
     @Override
-    protected void addAdditionalSaveData(CompoundTag p_20139_) {
+    public ItemStack getItemBySlot(EquipmentSlot p_21127_) {
+        return ItemStack.EMPTY;
+    }
+
+    @Override
+    public void setItemSlot(EquipmentSlot p_21036_, ItemStack p_21037_) {
     }
 
     @Override
@@ -335,5 +435,16 @@ public class HotAirBalloonEntity extends Entity {
     @Override
     public boolean shouldRiderSit() {
         return false;
+    }
+
+    @Override
+    public void registerControllers(AnimationData controller) {
+    }
+
+    private final AnimationFactory cache = GeckoLibUtil.createFactory(this);
+
+    @Override
+    public AnimationFactory getFactory() {
+        return cache;
     }
 }

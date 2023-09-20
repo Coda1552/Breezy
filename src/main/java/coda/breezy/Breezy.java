@@ -1,19 +1,20 @@
 package coda.breezy;
 
 import coda.breezy.common.WindDirectionSavedData;
+import coda.breezy.common.entities.HotAirBalloonEntity;
 import coda.breezy.networking.BreezyNetworking;
 import coda.breezy.networking.WindDirectionPacket;
 import coda.breezy.registry.BreezyBiomeModifiers;
 import coda.breezy.registry.BreezyEntities;
 import coda.breezy.registry.BreezyItems;
 import coda.breezy.registry.BreezyParticles;
-import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.TickEvent;
+import net.minecraftforge.event.entity.EntityAttributeCreationEvent;
 import net.minecraftforge.event.entity.EntityJoinLevelEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.fml.ModLoadingContext;
@@ -36,6 +37,7 @@ public class Breezy {
         IEventBus forgeBus = MinecraftForge.EVENT_BUS;
 
         bus.addListener(this::commonSetup);
+        bus.addListener(this::registerEntityAttributes);
 
         forgeBus.addListener(this::resetWindDirection);
         forgeBus.addListener(this::syncWindDataOnJoinWorld);
@@ -46,6 +48,10 @@ public class Breezy {
         BreezyBiomeModifiers.BIOME_MODIFIERS.register(bus);
 
         ModLoadingContext.get().registerConfig(ModConfig.Type.CLIENT, BreezyConfig.Client.SPEC);
+    }
+
+    private void registerEntityAttributes(EntityAttributeCreationEvent e) {
+        e.put(BreezyEntities.HOT_AIR_BALLOON.get(), HotAirBalloonEntity.createAttributes().build());
     }
 
     private void commonSetup(final FMLCommonSetupEvent event) {
