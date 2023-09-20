@@ -351,7 +351,7 @@ public class HotAirBalloonEntity extends LivingEntity implements IAnimatable {
     }
 
     @Override
-    public void move(MoverType type, Vec3 pos) {
+    public void travel(Vec3 p_21280_) {
         if (isAlive()) {
             WindDirectionSavedData data = BreezyNetworking.CLIENT_CACHE;
 
@@ -388,7 +388,7 @@ public class HotAirBalloonEntity extends LivingEntity implements IAnimatable {
             else {
                 setDeltaMovement(0, -0.05, 0);
             }
-            super.move(type, pos);
+            super.travel(p_21280_);
         }
     }
 
