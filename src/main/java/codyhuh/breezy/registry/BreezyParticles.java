@@ -1,7 +1,7 @@
-package coda.breezy.registry;
+package codyhuh.breezy.registry;
 
-import coda.breezy.Breezy;
-import coda.breezy.client.particles.WindParticle;
+import codyhuh.breezy.Breezy;
+import codyhuh.breezy.client.particles.WindParticle;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.particle.ParticleEngine;
 import net.minecraft.core.particles.ParticleType;

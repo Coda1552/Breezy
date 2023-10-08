@@ -1,6 +1,6 @@
-package coda.breezy.networking;
+package codyhuh.breezy.networking;
 
-import coda.breezy.common.WindDirectionSavedData;
+import codyhuh.breezy.common.WindDirectionSavedData;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraftforge.network.NetworkEvent;

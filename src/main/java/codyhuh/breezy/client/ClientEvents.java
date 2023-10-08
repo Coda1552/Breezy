@@ -1,13 +1,11 @@
-package coda.breezy.client;
+package codyhuh.breezy.client;
 
-import coda.breezy.Breezy;
-import coda.breezy.client.model.HotAirBalloonModel;
-import coda.breezy.client.render.HotAirBalloonRenderer;
-import coda.breezy.common.WindDirectionSavedData;
-import coda.breezy.networking.BreezyNetworking;
-import coda.breezy.registry.BreezyEntities;
-import coda.breezy.registry.BreezyItems;
-import net.minecraft.client.model.geom.ModelLayerLocation;
+import codyhuh.breezy.Breezy;
+import codyhuh.breezy.client.render.HotAirBalloonRenderer;
+import codyhuh.breezy.common.WindDirectionSavedData;
+import codyhuh.breezy.networking.BreezyNetworking;
+import codyhuh.breezy.registry.BreezyEntities;
+import codyhuh.breezy.registry.BreezyItems;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.renderer.item.ClampedItemPropertyFunction;
 import net.minecraft.client.renderer.item.ItemProperties;
@@ -22,7 +20,6 @@ import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.EntityRenderersEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
@@ -49,13 +46,13 @@ public class ClientEvents {
                 if (entity == null) {
                     return 0.0F;
                 } else {
-                    if (clientLevel == null && entity.level instanceof ClientLevel) {
-                        clientLevel = (ClientLevel)entity.level;
+                    if (clientLevel == null && entity.level() instanceof ClientLevel) {
+                        clientLevel = (ClientLevel)entity.level();
                     }
 
                     WindDirectionSavedData data = BreezyNetworking.CLIENT_CACHE;
 
-                    Direction dir = data.getWindDirection(entity.blockPosition().getY(), entity.getLevel());
+                    Direction dir = data.getWindDirection(entity.blockPosition().getY(), entity.level());
 
                     long i = clientLevel != null ? clientLevel.getGameTime() : 0;
                     if (dir != null) {

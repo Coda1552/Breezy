@@ -1,7 +1,7 @@
-package coda.breezy.common.biome;
+package codyhuh.breezy.common.biome;
 
-import coda.breezy.registry.BreezyBiomeModifiers;
-import coda.breezy.registry.BreezyParticles;
+import codyhuh.breezy.registry.BreezyBiomeModifiers;
+import codyhuh.breezy.registry.BreezyParticles;
 import com.mojang.serialization.Codec;
 import net.minecraft.core.Holder;
 import net.minecraft.tags.BiomeTags;

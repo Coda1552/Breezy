@@ -1,4 +1,4 @@
-package coda.breezy.client.particles;
+package codyhuh.breezy.client.particles;
 
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.particle.*;

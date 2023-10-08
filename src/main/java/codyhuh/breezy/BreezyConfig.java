@@ -1,4 +1,4 @@
-package coda.breezy;
+package codyhuh.breezy;
 
 import net.minecraftforge.common.ForgeConfigSpec;
 import net.minecraftforge.eventbus.api.SubscribeEvent;

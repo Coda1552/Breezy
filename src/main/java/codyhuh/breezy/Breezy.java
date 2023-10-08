@@ -1,18 +1,21 @@
-package coda.breezy;
+package codyhuh.breezy;
 
-import coda.breezy.common.WindDirectionSavedData;
-import coda.breezy.common.entities.HotAirBalloonEntity;
-import coda.breezy.networking.BreezyNetworking;
-import coda.breezy.networking.WindDirectionPacket;
-import coda.breezy.registry.BreezyBiomeModifiers;
-import coda.breezy.registry.BreezyEntities;
-import coda.breezy.registry.BreezyItems;
-import coda.breezy.registry.BreezyParticles;
+import codyhuh.breezy.common.WindDirectionSavedData;
+import codyhuh.breezy.common.entities.HotAirBalloonEntity;
+import codyhuh.breezy.networking.BreezyNetworking;
+import codyhuh.breezy.networking.WindDirectionPacket;
+import codyhuh.breezy.registry.BreezyBiomeModifiers;
+import codyhuh.breezy.registry.BreezyEntities;
+import codyhuh.breezy.registry.BreezyItems;
+import codyhuh.breezy.registry.BreezyParticles;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.CreativeModeTabs;
+import net.minecraft.world.level.ItemLike;
 import net.minecraft.world.level.Level;
 import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.event.BuildCreativeModeTabContentsEvent;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.entity.EntityAttributeCreationEvent;
 import net.minecraftforge.event.entity.EntityJoinLevelEvent;
@@ -38,6 +41,7 @@ public class Breezy {
 
         bus.addListener(this::commonSetup);
         bus.addListener(this::registerEntityAttributes);
+        bus.addListener(this::populateTabs);
 
         forgeBus.addListener(this::resetWindDirection);
         forgeBus.addListener(this::syncWindDataOnJoinWorld);
@@ -48,6 +52,14 @@ public class Breezy {
         BreezyBiomeModifiers.BIOME_MODIFIERS.register(bus);
 
         ModLoadingContext.get().registerConfig(ModConfig.Type.CLIENT, BreezyConfig.Client.SPEC);
+    }
+
+    private void populateTabs(BuildCreativeModeTabContentsEvent e) {
+        if (e.getTabKey() == CreativeModeTabs.TOOLS_AND_UTILITIES) {
+            for (var item : BreezyItems.ITEMS.getEntries()) {
+                e.accept(item.get());
+            }
+        }
     }
 
     private void registerEntityAttributes(EntityAttributeCreationEvent e) {
@@ -65,7 +77,7 @@ public class Breezy {
             WindDirectionSavedData.resetWindDirection(new Random());
 
             world.players().forEach(player -> {
-                Level level = player.getLevel();
+                Level level = player.level();
 
                 if (level.isClientSide) return;
 
@@ -77,7 +89,7 @@ public class Breezy {
 
     public void syncWindDataOnJoinWorld(EntityJoinLevelEvent e) {
         if (e.getEntity() instanceof Player player && !e.getLevel().isClientSide) {
-            WindDirectionSavedData data = ((ServerLevel) player.getLevel()).getDataStorage().computeIfAbsent(WindDirectionSavedData::new, () -> new WindDirectionSavedData(e.getLevel().getRandom()), Breezy.MOD_ID + ".savedata");
+            WindDirectionSavedData data = ((ServerLevel) player.level()).getDataStorage().computeIfAbsent(WindDirectionSavedData::new, () -> new WindDirectionSavedData(e.getLevel().getRandom()), Breezy.MOD_ID + ".savedata");
             BreezyNetworking.sendToPlayer(new WindDirectionPacket(data), (ServerPlayer) player);
         }
     }

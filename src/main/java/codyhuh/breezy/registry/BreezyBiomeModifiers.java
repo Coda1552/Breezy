@@ -1,7 +1,7 @@
-package coda.breezy.registry;
+package codyhuh.breezy.registry;
 
-import coda.breezy.Breezy;
-import coda.breezy.common.biome.BreezyBiomeModifier;
+import codyhuh.breezy.Breezy;
+import codyhuh.breezy.common.biome.BreezyBiomeModifier;
 import com.mojang.serialization.Codec;
 import net.minecraftforge.common.world.BiomeModifier;
 import net.minecraftforge.registries.DeferredRegister;

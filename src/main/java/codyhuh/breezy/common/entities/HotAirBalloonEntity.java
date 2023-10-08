@@ -1,15 +1,14 @@
-package coda.breezy.common.entities;
+package codyhuh.breezy.common.entities;
 
-import coda.breezy.common.WindDirectionSavedData;
-import coda.breezy.networking.BreezyNetworking;
-import coda.breezy.registry.BreezyItems;
-import coda.breezy.registry.BreezyTags;
-import com.google.common.collect.ImmutableList;
+import codyhuh.breezy.common.WindDirectionSavedData;
+import codyhuh.breezy.networking.BreezyNetworking;
+import codyhuh.breezy.registry.BreezyItems;
+import codyhuh.breezy.registry.BreezyTags;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Vec3i;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.protocol.Packet;
+import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.protocol.game.ClientboundAddEntityPacket;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
@@ -25,7 +24,6 @@ import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.vehicle.DismountHelper;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
 import net.minecraft.world.level.GameRules;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.gameevent.GameEvent;
@@ -34,14 +32,14 @@ import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.common.Tags;
 import net.minecraftforge.fluids.FluidType;
 import org.jetbrains.annotations.Nullable;
-import software.bernie.geckolib3.core.IAnimatable;
-import software.bernie.geckolib3.core.manager.AnimationData;
-import software.bernie.geckolib3.core.manager.AnimationFactory;
-import software.bernie.geckolib3.util.GeckoLibUtil;
+import software.bernie.geckolib.animatable.GeoEntity;
+import software.bernie.geckolib.core.animatable.instance.AnimatableInstanceCache;
+import software.bernie.geckolib.core.animation.AnimatableManager;
+import software.bernie.geckolib.util.GeckoLibUtil;
 
 import java.util.Collections;
 
-public class HotAirBalloonEntity extends LivingEntity implements IAnimatable {
+public class HotAirBalloonEntity extends LivingEntity implements GeoEntity {
     private static final EntityDataAccessor<Integer> LITNESS = SynchedEntityData.defineId(HotAirBalloonEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Integer> SANDBAGS = SynchedEntityData.defineId(HotAirBalloonEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Integer> DATA_ID_HURT = SynchedEntityData.defineId(HotAirBalloonEntity.class, EntityDataSerializers.INT);
@@ -90,12 +88,13 @@ public class HotAirBalloonEntity extends LivingEntity implements IAnimatable {
         this.entityData.set(DATA_ID_HURTDIR, p_38161_);
     }
 
-    public int getHurtDir() {
+    public int getHurtDirection() {
         return this.entityData.get(DATA_ID_HURTDIR);
     }
 
-    public void animateHurt() {
-        this.setHurtDir(-this.getHurtDir());
+    @Override
+    public void animateHurt(float p_265265_) {
+        this.setHurtDir(-this.getHurtDirection());
         this.setHurtTime(10);
         this.setDamage(this.getDamage() + this.getDamage() * 10.0F);
     }
@@ -104,15 +103,15 @@ public class HotAirBalloonEntity extends LivingEntity implements IAnimatable {
     public boolean hurt(DamageSource p_38319_, float p_38320_) {
         if (this.isInvulnerableTo(p_38319_)) {
             return false;
-        } else if (!this.level.isClientSide && !this.isRemoved()) {
-            this.setHurtDir(-this.getHurtDir());
+        } else if (!this.level().isClientSide && !this.isRemoved()) {
+            this.setHurtDir(-this.getHurtDirection());
             this.setHurtTime(10);
             this.setDamage(this.getDamage() + p_38320_ * 10.0F);
             this.markHurt();
             this.gameEvent(GameEvent.ENTITY_DAMAGE, p_38319_.getEntity());
             boolean flag = p_38319_.getEntity() instanceof Player && ((Player)p_38319_.getEntity()).getAbilities().instabuild;
             if (flag || this.getDamage() > 40.0F) {
-                if (!flag && this.level.getGameRules().getBoolean(GameRules.RULE_DOENTITYDROPS)) {
+                if (!flag && this.level().getGameRules().getBoolean(GameRules.RULE_DOENTITYDROPS)) {
                     this.destroy();
                 }
 
@@ -127,7 +126,7 @@ public class HotAirBalloonEntity extends LivingEntity implements IAnimatable {
 
     public void destroy() {
         this.discard();
-        if (this.level.getGameRules().getBoolean(GameRules.RULE_DOENTITYDROPS)) {
+        if (this.level().getGameRules().getBoolean(GameRules.RULE_DOENTITYDROPS)) {
             ItemStack itemstack = new ItemStack(BreezyItems.HOT_AIR_BALLOON.get());
             if (this.hasCustomName()) {
                 itemstack.setHoverName(this.getCustomName());
@@ -174,7 +173,7 @@ public class HotAirBalloonEntity extends LivingEntity implements IAnimatable {
     @Override
     public InteractionResult interactAt(Player player, Vec3 vec, InteractionHand hand) {
         if (player.getItemInHand(hand).isEmpty()) {
-            if (!this.level.isClientSide) {
+            if (!this.level().isClientSide) {
                 return player.startRiding(this) ? InteractionResult.CONSUME : InteractionResult.PASS;
             }
             else {
@@ -211,22 +210,24 @@ public class HotAirBalloonEntity extends LivingEntity implements IAnimatable {
                 return InteractionResult.SUCCESS;
             }
         }
+        else {
+            return InteractionResult.SUCCESS;
+        }
 
         return InteractionResult.PASS;
     }
 
     @Override
     public InteractionResult interact(Player player, InteractionHand hand) {
-        if (player.getItemInHand(hand).isEmpty()) {
-            if (!this.level.isClientSide) {
+        if (!hasPassenger(player) && player.getItemInHand(hand).isEmpty()) {
+            if (!this.level().isClientSide) {
                 return player.startRiding(this) ? InteractionResult.CONSUME : InteractionResult.PASS;
             }
             else {
                 return InteractionResult.SUCCESS;
             }
         }
-
-        if (hasPassenger(this)) {
+        else if (hasPassenger(player)) {
             if (getLitness() < 5 && isVehicle() && getControllingPassenger().is(player)) {
                 if (player.getItemInHand(hand).is(BreezyTags.IGNITION_SOURCES)) {
                     setLitness(getLitness() + 1);
@@ -256,21 +257,12 @@ public class HotAirBalloonEntity extends LivingEntity implements IAnimatable {
             }
         }
 
-        if (!hasPassenger(this) && player.isShiftKeyDown()) {
-            discard();
-            spawnAtLocation(new ItemStack(BreezyItems.HOT_AIR_BALLOON.get()));
-            playSound(SoundEvents.ITEM_FRAME_BREAK, 1.0F, 1.0F);
-
-            return InteractionResult.SUCCESS;
-        }
-
         return InteractionResult.SUCCESS;
     }
 
     @Override
-    @Nullable
-    public Entity getControllingPassenger() {
-        return this.getPassengers().isEmpty() ? null : this.getPassengers().get(0);
+    public LivingEntity getControllingPassenger() {
+        return this.getPassengers().isEmpty() ? null : (LivingEntity) this.getPassengers().get(0);
     }
 
     @Nullable
@@ -285,7 +277,7 @@ public class HotAirBalloonEntity extends LivingEntity implements IAnimatable {
             double d3 = this.getBoundingBox().maxY + 0.75D;
 
             while(true) {
-                double d4 = this.level.getBlockFloorHeight(blockpos$mutableblockpos);
+                double d4 = this.level().getBlockFloorHeight(blockpos$mutableblockpos);
                 if ((double)blockpos$mutableblockpos.getY() + d4 > d3) {
                     break;
                 }
@@ -293,7 +285,7 @@ public class HotAirBalloonEntity extends LivingEntity implements IAnimatable {
                 if (DismountHelper.isBlockFloorValid(d4)) {
                     AABB aabb = p_30563_.getLocalBoundsForPose(pose);
                     Vec3 vec3 = new Vec3(d0, (double)blockpos$mutableblockpos.getY() + d4, d2);
-                    if (DismountHelper.canDismountTo(this.level, p_30563_, aabb.move(vec3))) {
+                    if (DismountHelper.canDismountTo(this.level(), p_30563_, aabb.move(vec3))) {
                         p_30563_.setPose(pose);
                         return vec3;
                     }
@@ -323,7 +315,7 @@ public class HotAirBalloonEntity extends LivingEntity implements IAnimatable {
     }
 
     @Override
-    public Packet<?> getAddEntityPacket() {
+    public Packet<ClientGamePacketListener> getAddEntityPacket() {
         return new ClientboundAddEntityPacket(this);
     }
 
@@ -356,10 +348,10 @@ public class HotAirBalloonEntity extends LivingEntity implements IAnimatable {
             WindDirectionSavedData data = BreezyNetworking.CLIENT_CACHE;
 
             if (data != null) {
-                Direction direction = data.getWindDirection(blockPosition().getY(), level);
+                Direction direction = data.getWindDirection(blockPosition().getY(), level());
 
                 if (getControllingPassenger() instanceof Player) {
-                    if (!isOnGround() && getLitness() > 0) {
+                    if (!onGround() && getLitness() > 0) {
                         Vec3i normal = direction.getNormal();
                         setDeltaMovement(getDeltaMovement().add(normal.getX(), 0, normal.getZ()).scale(0.1F));
                     }
@@ -367,12 +359,12 @@ public class HotAirBalloonEntity extends LivingEntity implements IAnimatable {
                     if (getLitness() > 0) {
                         setDeltaMovement(getDeltaMovement().add(0, (getLitness() + 1) * 0.02D, 0));
 
-                        if (isOnGround()) {
+                        if (onGround()) {
                             setDeltaMovement(getDeltaMovement().add(0D, 1.0D, 0D));
                         }
                     }
 
-                    if (!isOnGround() && getLitness() == 0) {
+                    if (!onGround() && getLitness() == 0) {
                         setDeltaMovement(0, -0.075D, 0);
                     }
 
@@ -441,13 +433,12 @@ public class HotAirBalloonEntity extends LivingEntity implements IAnimatable {
     }
 
     @Override
-    public void registerControllers(AnimationData controller) {
+    public void registerControllers(AnimatableManager.ControllerRegistrar data) {
     }
 
-    private final AnimationFactory cache = GeckoLibUtil.createFactory(this);
+    private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
 
-    @Override
-    public AnimationFactory getFactory() {
+    public AnimatableInstanceCache getAnimatableInstanceCache() {
         return cache;
     }
 }

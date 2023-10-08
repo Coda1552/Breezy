@@ -1,7 +1,7 @@
-package coda.breezy.networking;
+package codyhuh.breezy.networking;
 
-import coda.breezy.Breezy;
-import coda.breezy.common.WindDirectionSavedData;
+import codyhuh.breezy.Breezy;
+import codyhuh.breezy.common.WindDirectionSavedData;
 import net.minecraft.client.Minecraft;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;

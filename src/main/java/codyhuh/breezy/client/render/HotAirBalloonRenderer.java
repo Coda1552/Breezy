@@ -1,32 +1,32 @@
-package coda.breezy.client.render;
+package codyhuh.breezy.client.render;
 
-import coda.breezy.Breezy;
-import coda.breezy.client.model.HotAirBalloonModel;
-import coda.breezy.common.entities.HotAirBalloonEntity;
+import codyhuh.breezy.Breezy;
+import codyhuh.breezy.common.entities.HotAirBalloonEntity;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
-import com.mojang.math.Vector3f;
+import com.mojang.math.Axis;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import org.jetbrains.annotations.Nullable;
-import software.bernie.geckolib3.geo.render.built.GeoBone;
-import software.bernie.geckolib3.geo.render.built.GeoModel;
-import software.bernie.geckolib3.renderers.geo.GeoEntityRenderer;
+import software.bernie.geckolib.cache.object.BakedGeoModel;
+import software.bernie.geckolib.cache.object.GeoBone;
+import software.bernie.geckolib.model.DefaultedEntityGeoModel;
+import software.bernie.geckolib.renderer.GeoEntityRenderer;
 
 import java.util.Optional;
 
 public class HotAirBalloonRenderer extends GeoEntityRenderer<HotAirBalloonEntity> {
 
     public HotAirBalloonRenderer(EntityRendererProvider.Context renderManager) {
-        super(renderManager, new HotAirBalloonModel());
+        super(renderManager, new DefaultedEntityGeoModel<>(new ResourceLocation(Breezy.MOD_ID, "hot_air_balloon")));
     }
 
     @Override
-    public RenderType getRenderType(HotAirBalloonEntity animatable, float partialTick, PoseStack poseStack, @Nullable MultiBufferSource bufferSource, @Nullable VertexConsumer buffer, int packedLight, ResourceLocation texture) {
-        return RenderType.entityTranslucent(texture);
+    public RenderType getRenderType(HotAirBalloonEntity animatable, ResourceLocation texture, @Nullable MultiBufferSource bufferSource, float partialTick) {
+        return super.getRenderType(animatable, texture, bufferSource, partialTick); //RenderType.entityTranslucent(texture);
     }
 
     @Override
@@ -40,7 +40,7 @@ public class HotAirBalloonRenderer extends GeoEntityRenderer<HotAirBalloonEntity
         }
 
         if (f > 0.0F) {
-            poseStack.mulPose(Vector3f.XP.rotationDegrees(Mth.sin(f) * f1 / 10.0F * (float)animatable.getHurtDir()));
+            poseStack.mulPose(Axis.XP.rotationDegrees(Mth.sin(f) * f1 / 10.0F * (float)animatable.getHurtDirection()));
         }
 
         super.render(animatable, entityYaw, partialTick, poseStack, bufferSource, packedLight);
@@ -50,8 +50,7 @@ public class HotAirBalloonRenderer extends GeoEntityRenderer<HotAirBalloonEntity
     }
 
     @Override
-    public void renderEarly(HotAirBalloonEntity animatable, PoseStack poseStack, float partialTick, MultiBufferSource bufferSource, VertexConsumer buffer, int packedLight, int packedOverlay, float red, float green, float blue, float partialTicks) {
-        GeoModel model = getGeoModelProvider().getModel(new ResourceLocation(Breezy.MOD_ID, "geo/hot_air_balloon.geo.json"));
+    public void preRender(PoseStack poseStack, HotAirBalloonEntity animatable, BakedGeoModel model, MultiBufferSource bufferSource, VertexConsumer buffer, boolean isReRender, float partialTick, int packedLight, int packedOverlay, float red, float green, float blue, float alpha) {
 
         for (int i = 1; i <= 8; i++) {
             Optional<GeoBone> arm = model.getBone("sandBag" + i);
@@ -64,7 +63,7 @@ public class HotAirBalloonRenderer extends GeoEntityRenderer<HotAirBalloonEntity
             arm.ifPresent(geoBone -> geoBone.setHidden(false));
         }
 
-        super.renderEarly(animatable, poseStack, partialTick, bufferSource, buffer, packedLight, packedOverlay, red, green, blue, partialTicks);
+        super.preRender(poseStack, animatable, model, bufferSource, buffer, isReRender, partialTick, packedLight, packedOverlay, red, green, blue, alpha);
     }
 
 }
