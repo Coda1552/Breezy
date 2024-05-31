@@ -1,6 +1,6 @@
 package codyhuh.breezy.core.mixin;
 
-import codyhuh.breezy.common.util.MixinUtil;
+import codyhuh.breezy.core.other.MixinUtil;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.core.BlockPos;
 import net.minecraft.util.RandomSource;

@@ -44,6 +44,7 @@ public class Breezy {
     public Breezy() {
         IEventBus bus = FMLJavaModLoadingContext.get().getModEventBus();
         IEventBus forgeBus = MinecraftForge.EVENT_BUS;
+        ModLoadingContext context = ModLoadingContext.get();
 
         bus.addListener(this::commonSetup);
         bus.addListener(this::dataSetup);
@@ -58,7 +59,8 @@ public class Breezy {
         BreezyItems.ITEMS.register(bus);
         BreezyBiomeModifiers.BIOME_MODIFIERS.register(bus);
 
-        ModLoadingContext.get().registerConfig(ModConfig.Type.CLIENT, BreezyConfig.Client.SPEC);
+        context.registerConfig(ModConfig.Type.COMMON, BreezyConfig.COMMON_SPEC);
+        context.registerConfig(ModConfig.Type.CLIENT, BreezyConfig.CLIENT_SPEC);
     }
 
     private void populateTabs(BuildCreativeModeTabContentsEvent e) {
@@ -91,7 +93,7 @@ public class Breezy {
     private void resetWindDirection(TickEvent.LevelTickEvent e) {
         Level world = e.level;
 
-        if (!world.isClientSide && world.getDayTime() % 24000 == 0) {
+        if (!world.isClientSide && world.getDayTime() % BreezyConfig.COMMON.windPeriodLength.get() == 0) {
             WindDirectionSavedData.resetWindDirection(new Random());
 
             world.players().forEach(player -> {

@@ -1,4 +1,4 @@
-package codyhuh.breezy.common.util;
+package codyhuh.breezy.core.other;
 
 import codyhuh.breezy.BreezyConfig;
 import codyhuh.breezy.core.other.tags.BreezyBiomeTags;
@@ -14,18 +14,18 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 public class MixinUtil {
     @OnlyIn(Dist.CLIENT)
     public static void tryAddWindParticle(ClientLevel level, BlockPos pos, RandomSource random) {
-        if (!BreezyConfig.shouldDisplayWind) return;
+        if (!BreezyConfig.CLIENT.shouldDisplayWind.get()) return;
         if (!level.canSeeSky(pos)) return;
         double chance;
         Holder<Biome> holder = level.getBiome(pos);
         if (holder.is(BreezyBiomeTags.LESS_WIND)) {
-            chance = 0.005F * 0.015F;
+            chance = BreezyConfig.CLIENT.lowWindFrequency.get();
         } else if (holder.is(BreezyBiomeTags.MORE_WIND)) {
-            chance = 0.015F * 0.015F;
+            chance = BreezyConfig.CLIENT.highWindFrequency.get();
         } else {
-            chance = 0.01F * 0.015F;
+            chance = BreezyConfig.CLIENT.defaultWindFrequency.get();
         }
-        if (random.nextFloat() <= chance) {
+        if (random.nextFloat() <= chance * 0.015) {
             level.addParticle(BreezyParticles.WIND.get(), (double)pos.getX() + random.nextDouble(), pos.getY() +
                     random.nextDouble(), pos.getZ() + random.nextDouble(), 0.0D, 0.0D, 0.0D);
         }
