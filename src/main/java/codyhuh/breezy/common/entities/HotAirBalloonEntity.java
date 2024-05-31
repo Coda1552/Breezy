@@ -18,12 +18,17 @@ import net.minecraft.tags.ItemTags;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
+import net.minecraft.world.entity.boss.wither.WitherBoss;
+import net.minecraft.world.entity.decoration.ArmorStand;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.vehicle.DismountHelper;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.SplashPotionItem;
+import net.minecraft.world.item.alchemy.Potions;
 import net.minecraft.world.level.GameRules;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.gameevent.GameEvent;
@@ -31,6 +36,7 @@ import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.common.Tags;
 import net.minecraftforge.fluids.FluidType;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import software.bernie.geckolib.animatable.GeoEntity;
 import software.bernie.geckolib.core.animatable.instance.AnimatableInstanceCache;
@@ -424,8 +430,16 @@ public class HotAirBalloonEntity extends LivingEntity implements GeoEntity {
         return false;
     }
 
+    public boolean addEffect(MobEffectInstance p_182397_, @javax.annotation.Nullable Entity p_182398_) {
+        return false;
+    }
+
     @Override
     public void registerControllers(AnimatableManager.ControllerRegistrar data) {
+    }
+
+    public @NotNull AABB getBoundingBoxForCulling() {
+        return super.getBoundingBoxForCulling().inflate(0.2, 3.0, 0.2);
     }
 
     private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
