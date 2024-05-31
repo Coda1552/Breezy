@@ -1,8 +1,8 @@
 package codyhuh.breezy.common.items;
 
 import codyhuh.breezy.common.entities.HotAirBalloonEntity;
-import codyhuh.breezy.registry.BreezyEntities;
-import codyhuh.breezy.registry.BreezyItems;
+import codyhuh.breezy.core.registry.BreezyEntities;
+import codyhuh.breezy.core.registry.BreezyItems;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;

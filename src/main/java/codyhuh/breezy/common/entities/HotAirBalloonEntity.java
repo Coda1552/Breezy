@@ -1,9 +1,9 @@
 package codyhuh.breezy.common.entities;
 
 import codyhuh.breezy.common.WindDirectionSavedData;
-import codyhuh.breezy.networking.BreezyNetworking;
-import codyhuh.breezy.registry.BreezyItems;
-import codyhuh.breezy.registry.BreezyTags;
+import codyhuh.breezy.core.other.networking.BreezyNetworking;
+import codyhuh.breezy.core.registry.BreezyItems;
+import codyhuh.breezy.core.other.tags.BreezyItemTags;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Vec3i;
@@ -175,7 +175,7 @@ public class HotAirBalloonEntity extends LivingEntity implements GeoEntity {
 
         if (!getPassengers().isEmpty()) {
             if (getLitness() < 5 && isVehicle() && getControllingPassenger().is(player)) {
-                if (player.getItemInHand(hand).is(BreezyTags.IGNITION_SOURCES)) {
+                if (player.getItemInHand(hand).is(BreezyItemTags.IGNITION_SOURCES)) {
                     setLitness(getLitness() + 1);
                     playSound(SoundEvents.CAMPFIRE_CRACKLE, 1.0F, 1.0F);
                     player.getItemInHand(hand).hurtAndBreak(1, player, p -> p.broadcastBreakEvent(player.getUsedItemHand()));
@@ -221,7 +221,7 @@ public class HotAirBalloonEntity extends LivingEntity implements GeoEntity {
         }
         else if (hasPassenger(player)) {
             if (getLitness() < 5 && isVehicle() && getControllingPassenger().is(player)) {
-                if (player.getItemInHand(hand).is(BreezyTags.IGNITION_SOURCES)) {
+                if (player.getItemInHand(hand).is(BreezyItemTags.IGNITION_SOURCES)) {
                     setLitness(getLitness() + 1);
                     playSound(SoundEvents.CAMPFIRE_CRACKLE, 1.0F, 1.0F);
                     player.getItemInHand(hand).hurtAndBreak(1, player, p -> p.broadcastBreakEvent(player.getUsedItemHand()));

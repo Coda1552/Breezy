@@ -1,12 +1,13 @@
 {
   "required": true,
-  "package": "codyhuh.breezy.mixin",
+  "package": "codyhuh.breezy.core.mixin",
   "compatibilityLevel": "JAVA_17",
   "minVersion": "0.8",
   "refmap": "breezy.refmap.json",
   "mixins": [
   ],
   "client": [
+    "ClientLevelMixin"
   ],
   "injectors": {
     "defaultRequire": 1

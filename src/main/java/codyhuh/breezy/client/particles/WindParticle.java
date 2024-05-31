@@ -2,6 +2,7 @@ package codyhuh.breezy.client.particles;
 
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.particle.*;
+import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.SimpleParticleType;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
@@ -19,7 +20,7 @@ public class WindParticle extends RisingParticle {
         this.hasPhysics = true;
         this.setPos(x, y, z);
         this.setSpriteFromAge(p_107724_);
-        this.setAlpha(0.5F);
+        this.setAlpha(y < level.getSeaLevel() + 20 ? 0 : 0.5F);
     }
 
     public ParticleRenderType getRenderType() {
@@ -30,7 +31,7 @@ public class WindParticle extends RisingParticle {
         super.tick();
         this.setSpriteFromAge(this.sprites);
 
-        if (y < 85) remove();
+        if (this.alpha == 0) remove();
     }
 
     @OnlyIn(Dist.CLIENT)

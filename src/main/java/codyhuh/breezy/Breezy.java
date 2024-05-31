@@ -2,18 +2,24 @@ package codyhuh.breezy;
 
 import codyhuh.breezy.common.WindDirectionSavedData;
 import codyhuh.breezy.common.entities.HotAirBalloonEntity;
-import codyhuh.breezy.networking.BreezyNetworking;
-import codyhuh.breezy.networking.WindDirectionPacket;
-import codyhuh.breezy.registry.BreezyBiomeModifiers;
-import codyhuh.breezy.registry.BreezyEntities;
-import codyhuh.breezy.registry.BreezyItems;
-import codyhuh.breezy.registry.BreezyParticles;
+import codyhuh.breezy.core.data.server.BreezyBiomeTagsProvider;
+import codyhuh.breezy.core.other.networking.BreezyNetworking;
+import codyhuh.breezy.core.other.networking.WindDirectionPacket;
+import codyhuh.breezy.core.registry.BreezyBiomeModifiers;
+import codyhuh.breezy.core.registry.BreezyEntities;
+import codyhuh.breezy.core.registry.BreezyItems;
+import codyhuh.breezy.core.registry.BreezyParticles;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.data.DataGenerator;
+import net.minecraft.data.PackOutput;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.CreativeModeTabs;
 import net.minecraft.world.level.Level;
 import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.common.data.ExistingFileHelper;
+import net.minecraftforge.data.event.GatherDataEvent;
 import net.minecraftforge.event.BuildCreativeModeTabContentsEvent;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.entity.EntityAttributeCreationEvent;
@@ -28,6 +34,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.util.Random;
+import java.util.concurrent.CompletableFuture;
 
 @Mod(Breezy.MOD_ID)
 public class Breezy {
@@ -39,6 +46,7 @@ public class Breezy {
         IEventBus forgeBus = MinecraftForge.EVENT_BUS;
 
         bus.addListener(this::commonSetup);
+        bus.addListener(this::dataSetup);
         bus.addListener(this::registerEntityAttributes);
         bus.addListener(this::populateTabs);
 
@@ -67,6 +75,17 @@ public class Breezy {
 
     private void commonSetup(final FMLCommonSetupEvent event) {
         BreezyNetworking.register();
+    }
+
+    private void dataSetup(GatherDataEvent event) {
+        DataGenerator generator = event.getGenerator();
+        PackOutput output = generator.getPackOutput();
+        CompletableFuture<HolderLookup.Provider> provider = event.getLookupProvider();
+        ExistingFileHelper helper = event.getExistingFileHelper();
+
+        boolean server = event.includeServer();
+
+        generator.addProvider(server, new BreezyBiomeTagsProvider(output, provider, helper));
     }
 
     private void resetWindDirection(TickEvent.LevelTickEvent e) {
