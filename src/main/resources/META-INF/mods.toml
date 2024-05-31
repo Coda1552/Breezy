@@ -1,14 +1,14 @@
 modLoader="javafml"
 loaderVersion="${loader_version_range}"
-license="${mod_license}"
+license="LGPL-3.0"
 issueTrackerURL="https://github.com/Coda1552/Breezy/issues"
 
 [[mods]]
 modId="breezy"
 version = "${file.jarVersion}"
 displayName = "Breezy"
-#displayURL="https://change.me.to.your.mods.homepage.example.invalid/" #optional
-#logoFile="examplemod.png" #optional
+displayURL="https://modrinth.com/mod/breezy"
+logoFile="logo.png"
 credits="Mr. Esuoh, VakyPanda, Mango, Ezae10"
 authors="codyhuh, Probleyes"
 itemIcon = "breezy:hot_air_balloon"
