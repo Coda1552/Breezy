@@ -25,7 +25,6 @@ public class HotAirBalloonItem extends Item {
     public InteractionResult useOn(UseOnContext context) {
         Level world = context.getLevel();
         if (!(world instanceof ServerLevel)) {
-            System.out.println(world.isClientSide());
             return InteractionResult.SUCCESS;
         } else if (context.getItemInHand().getItem().equals(BreezyItems.HOT_AIR_BALLOON.get())) {
             ItemStack itemstack = context.getItemInHand();
@@ -45,7 +44,6 @@ public class HotAirBalloonItem extends Item {
             if (entity == null) return InteractionResult.FAIL;
 
             entity.moveTo(blockpos1.getX() + 0.5, blockpos1.getY(), blockpos1.getZ() + 0.5, context.getPlayer().yRotO, 0f);
-            System.out.println(entity.position());
 
             if (stack.hasCustomHoverName()) entity.setCustomName(stack.getHoverName());
 
