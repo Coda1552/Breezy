@@ -28,6 +28,7 @@ import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 
 import javax.annotation.Nullable;
 
+@SuppressWarnings("unused")
 @Mod.EventBusSubscriber(modid = Breezy.MOD_ID, bus = Mod.EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
 public class ClientEvents {
 

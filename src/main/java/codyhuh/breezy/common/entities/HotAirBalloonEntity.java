@@ -160,14 +160,6 @@ public class HotAirBalloonEntity extends LivingEntity implements GeoEntity {
         if (this.getDamage() > 0.0F) {
             this.setDamage(this.getDamage() - 1.0F);
         }
-
-        // Flame particle
-        /*
-        if (tickCount % 10 == 0 && getLitness() > 0) {
-            for (int i = 0; i < getLitness(); i++) {
-                level.addParticle(ParticleTypes.FLAME, getX(), getY() + 2.35D,  getZ(), getDeltaMovement().x, 0.1D, getDeltaMovement().z);
-            }
-        }*/
     }
 
     @Override
