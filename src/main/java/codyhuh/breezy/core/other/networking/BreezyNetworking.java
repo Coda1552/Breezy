@@ -1,4 +1,4 @@
-package codyhuh.breezy.networking;
+package codyhuh.breezy.core.other.networking;
 
 import codyhuh.breezy.Breezy;
 import codyhuh.breezy.common.WindDirectionSavedData;

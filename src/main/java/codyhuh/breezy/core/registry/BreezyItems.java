@@ -1,4 +1,4 @@
-package codyhuh.breezy.registry;
+package codyhuh.breezy.core.registry;
 
 import codyhuh.breezy.Breezy;
 import codyhuh.breezy.common.items.HotAirBalloonItem;
