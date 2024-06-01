@@ -1,5 +1,6 @@
 package codyhuh.breezy.common.entities;
 
+import codyhuh.breezy.BreezyConfig;
 import codyhuh.breezy.common.WindDirectionSavedData;
 import codyhuh.breezy.core.other.networking.BreezyNetworking;
 import codyhuh.breezy.core.other.tags.BreezyBiomeTags;
@@ -432,6 +433,10 @@ public class HotAirBalloonEntity extends LivingEntity implements GeoEntity {
     @Override
     public boolean shouldRiderSit() {
         return false;
+    }
+
+    public boolean shouldRenderAtSqrDistance(double p_33107_) {
+        return BreezyConfig.CLIENT.balloonsAlwaysRender.get() || super.shouldRenderAtSqrDistance(p_33107_);
     }
 
     public boolean addEffect(MobEffectInstance p_182397_, @javax.annotation.Nullable Entity p_182398_) {

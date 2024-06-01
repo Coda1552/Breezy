@@ -23,15 +23,21 @@ public class BreezyConfig {
         public final ForgeConfigSpec.ConfigValue<Double> lowWindFrequency;
         public final ForgeConfigSpec.ConfigValue<Double> defaultWindFrequency;
         public final ForgeConfigSpec.ConfigValue<Double> highWindFrequency;
+        public final ForgeConfigSpec.ConfigValue<Boolean> balloonsAlwaysRender;
 
         public Client(ForgeConfigSpec.Builder builder) {
+            builder.push("client");
             builder.push("particles");
             shouldDisplayWind = builder.comment("Should wind be displayed?\nDefault: true").define("should_display_wind", true);
             minimumWindHeight = builder.comment("How high above sea level should wind be displayed?\nDefault: 20").define("minimum_wind_height_above_sea_level", 20);
             windMustSeeSky = builder.comment("Wind particles may only spawn in blocks with access to sky\nDefault: true").define("wind_must_see_sky", true);
+            builder.push("biome dependent frequency multipliers");
             lowWindFrequency = builder.comment("Wind freq multiplier for low_wind biomes\nDefault: 0.005").defineInRange("low_wind_frequency", 0.005, 0.0, 1.0);
             defaultWindFrequency = builder.comment("Wind freq multiplier by default\nDefault: 0.01").defineInRange("medium_wind_frequency", 0.01, 0.0, 1.0);
             highWindFrequency = builder.comment("Wind freq multiplier for high_wind biomes\nDefault: 0.015").defineInRange("high_wind_frequency", 0.015, 0.0, 1.0);
+            builder.pop();
+            builder.pop();
+            balloonsAlwaysRender = builder.comment("Should wind be displayed?\nDefault: true").define("balloons_always_render", true);
             builder.pop();
         }
     }
