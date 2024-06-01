@@ -186,7 +186,8 @@ public class HotAirBalloonEntity extends LivingEntity implements GeoEntity {
                 if (!entity.hasPassenger(this)) {
                     if (flag && this.getPassengers().isEmpty() && !entity.isPassenger() &&
                             entity.getBbWidth() < this.getBbWidth() && entity instanceof LivingEntity &&
-                            !(entity instanceof WaterAnimal) && !(entity instanceof Player)) {
+                            !(entity instanceof WaterAnimal) && !(entity instanceof Player)
+                    && entity.getBbHeight() < this.getBbHeight() * 2.0) {
                         entity.startRiding(this);
                     } else {
                         this.push(entity);

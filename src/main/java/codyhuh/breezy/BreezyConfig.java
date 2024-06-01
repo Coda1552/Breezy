@@ -37,7 +37,7 @@ public class BreezyConfig {
             highWindFrequency = builder.comment("Wind freq multiplier for high_wind biomes\nDefault: 0.015").defineInRange("high_wind_frequency", 0.015, 0.0, 1.0);
             builder.pop();
             builder.pop();
-            balloonsAlwaysRender = builder.comment("Should wind be displayed?\nDefault: true").define("balloons_always_render", true);
+            balloonsAlwaysRender = builder.comment("Should balloons render from farther distances?\nDefault: true").define("balloons_render_farther_away", true);
             builder.pop();
         }
     }
