@@ -22,6 +22,7 @@ public class HotAirBalloonRenderer extends GeoEntityRenderer<HotAirBalloonEntity
 
     public HotAirBalloonRenderer(EntityRendererProvider.Context renderManager) {
         super(renderManager, new DefaultedEntityGeoModel<>(new ResourceLocation(Breezy.MOD_ID, "hot_air_balloon")));
+        this.addRenderLayer(new BalloonDyeLayer(this));
     }
 
     @Override
