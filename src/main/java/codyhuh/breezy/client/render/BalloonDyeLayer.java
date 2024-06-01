@@ -22,9 +22,15 @@ public class BalloonDyeLayer extends GeoRenderLayer<HotAirBalloonEntity> {
 
     @Override
     public void render(PoseStack poseStack, HotAirBalloonEntity balloon, BakedGeoModel bakedModel, RenderType renderType, MultiBufferSource bufferSource, VertexConsumer buffer, float partialTick, int packedLight, int packedOverlay) {
-        RenderType collarTexture = RenderType.entityCutoutNoCull(DYE_LOCATION);
-        float[] afloat = balloon.getDyeColor().getTextureDiffuseColors();
-        this.getRenderer().reRender(this.getGeoModel().getBakedModel(MODEL), poseStack, bufferSource, balloon, collarTexture, bufferSource.getBuffer(collarTexture), partialTick, packedLight, OverlayTexture.NO_OVERLAY, afloat[0], afloat[1], afloat[2], 1.0F);
+        RenderType skinTexture = RenderType.entityCutoutNoCull(DYE_LOCATION);
+        int color = balloon.getColor();
+        int red = (color >> 16) & 255;
+        int green = (color >> 8) & 255;
+        int blue = color & 255;
+        int[] dRGB = new int[]{255 - red, 255 - green, 255 - blue};
+        this.getRenderer().reRender(this.getGeoModel().getBakedModel(MODEL), poseStack, bufferSource, balloon,
+                skinTexture, bufferSource.getBuffer(skinTexture), partialTick, packedLight,
+                OverlayTexture.NO_OVERLAY, dRGB[0], dRGB[1], dRGB[2], 1.0F);
     }
 }
 

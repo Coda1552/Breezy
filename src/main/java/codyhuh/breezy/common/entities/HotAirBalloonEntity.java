@@ -28,14 +28,15 @@ import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.animal.WaterAnimal;
+import net.minecraft.world.entity.decoration.ArmorStand;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.entity.vehicle.Boat;
 import net.minecraft.world.entity.vehicle.DismountHelper;
 import net.minecraft.world.item.*;
 import net.minecraft.world.level.GameRules;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.gameevent.GameEvent;
+import net.minecraft.world.level.material.MapColor;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.common.Tags;
@@ -51,9 +52,11 @@ import java.util.Collections;
 import java.util.List;
 
 public class HotAirBalloonEntity extends LivingEntity implements GeoEntity {
+    public static final int DEFAULT_COLOR = 16351261;
+
     private static final EntityDataAccessor<Integer> LITNESS = SynchedEntityData.defineId(HotAirBalloonEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Integer> SANDBAGS = SynchedEntityData.defineId(HotAirBalloonEntity.class, EntityDataSerializers.INT);
-    private static final EntityDataAccessor<Integer> DATA_DYE_COLOR = SynchedEntityData.defineId(HotAirBalloonEntity.class, EntityDataSerializers.INT);
+    private static final EntityDataAccessor<Integer> DATA_COLOR = SynchedEntityData.defineId(HotAirBalloonEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Integer> DATA_ID_HURT = SynchedEntityData.defineId(HotAirBalloonEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Integer> DATA_ID_HURTDIR = SynchedEntityData.defineId(HotAirBalloonEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Float> DATA_ID_DAMAGE = SynchedEntityData.defineId(HotAirBalloonEntity.class, EntityDataSerializers.FLOAT);
@@ -70,7 +73,7 @@ public class HotAirBalloonEntity extends LivingEntity implements GeoEntity {
         super.defineSynchedData();
         this.entityData.define(LITNESS, 0);
         this.entityData.define(SANDBAGS, 0);
-        this.entityData.define(DATA_DYE_COLOR, DyeColor.ORANGE.getId());
+        this.entityData.define(DATA_COLOR, DEFAULT_COLOR);
         this.entityData.define(DATA_ID_HURT, 0);
         this.entityData.define(DATA_ID_HURTDIR, 1);
         this.entityData.define(DATA_ID_DAMAGE, 0.0F);
@@ -144,18 +147,21 @@ public class HotAirBalloonEntity extends LivingEntity implements GeoEntity {
             if (this.hasCustomName()) {
                 itemstack.setHoverName(this.getCustomName());
             }
+            if (this.getColor() != DEFAULT_COLOR) {
+                CompoundTag compoundtag = itemstack.getOrCreateTagElement("display");
+                compoundtag.putInt("color", this.getColor());
+            }
 
             this.spawnAtLocation(itemstack);
         }
-
     }
 
     @Override
     public void tick() {
         super.tick();
-        if (tickCount % 20 == 0 && random.nextBoolean() && !this.getPassengers().isEmpty())  {
+        if (tickCount % 10 == 0 && random.nextBoolean() && !this.getPassengers().isEmpty())  {
             Entity entity = this.getPassengers().get(0);
-            if (entity.getType().is(BreezyEntityTypeTags.HOT_ONES)) {
+            if (entity.getType().is(BreezyEntityTypeTags.HOT_ONES) && getLitness() != 3) {
                 setLitness(3);
             } else if (entity.isOnFire() && getLitness() < 2){
                 setLitness(getLitness() + 1);
@@ -241,16 +247,16 @@ public class HotAirBalloonEntity extends LivingEntity implements GeoEntity {
     public InteractionResult interact(Player player, InteractionHand hand) {
         ItemStack itemstack = player.getItemInHand(hand);
         Item item = itemstack.getItem();
-        if (item instanceof DyeItem dye) {
-            DyeColor dyecolor = dye.getDyeColor();
-            if (dyecolor != this.getDyeColor()) {
-                this.setDyeColor(dyecolor);
-                if (!player.getAbilities().instabuild) {
-                    itemstack.shrink(1);
-                }
-                return InteractionResult.SUCCESS;
-            }
-        }
+//        if (item instanceof DyeItem dye) {
+//            DyeColor dyecolor = dye.getDyeColor();
+//            if (dyecolor != this.getColor()) {
+//                this.setColor(dyecolor);
+//                if (!player.getAbilities().instabuild) {
+//                    itemstack.shrink(1);
+//                }
+//                return InteractionResult.SUCCESS;
+//            }
+//        }
         if (!hasPassenger(player) && player.getItemInHand(hand).isEmpty()) {
             if (!this.level().isClientSide) {
                 return player.startRiding(this) ? InteractionResult.CONSUME : InteractionResult.PASS;
@@ -371,24 +377,24 @@ public class HotAirBalloonEntity extends LivingEntity implements GeoEntity {
         return true;
     }
 
-    public void addAdditionalSaveData(CompoundTag p_30418_) {
-        super.addAdditionalSaveData(p_30418_);
-        p_30418_.putByte("SkinDyeColor", (byte) this.getDyeColor().getId());
+    public void addAdditionalSaveData(CompoundTag tag) {
+        super.addAdditionalSaveData(tag);
+        tag.putInt("customColor", this.getColor());
     }
 
-    public void readAdditionalSaveData(CompoundTag p_30402_) {
-        super.readAdditionalSaveData(p_30402_);
-        if (p_30402_.contains("SkinDyeColor", 99)) {
-            this.setDyeColor(DyeColor.byId(p_30402_.getInt("SkinDyeColor")));
+    public void readAdditionalSaveData(CompoundTag tag) {
+        super.readAdditionalSaveData(tag);
+        if (tag.contains("customColor", 99)) {
+            this.setColor((tag.getInt("customColor")));
         }
     }
 
-    public DyeColor getDyeColor() {
-        return DyeColor.byId(this.entityData.get(DATA_DYE_COLOR));
+    public int getColor() {
+        return this.entityData.get(DATA_COLOR);
     }
 
-    public void setDyeColor(DyeColor p_30398_) {
-        this.entityData.set(DATA_DYE_COLOR, p_30398_.getId());
+    public void setColor(int p_30398_) {
+        this.entityData.set(DATA_COLOR, p_30398_);
     }
 
     public void setLitness(int litness) {
