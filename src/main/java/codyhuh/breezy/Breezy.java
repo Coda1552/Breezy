@@ -3,6 +3,7 @@ package codyhuh.breezy;
 import codyhuh.breezy.common.WindDirectionSavedData;
 import codyhuh.breezy.common.entities.HotAirBalloonEntity;
 import codyhuh.breezy.core.data.server.BreezyBiomeTagsProvider;
+import codyhuh.breezy.core.data.server.BreezyEntityTypeTagsProvider;
 import codyhuh.breezy.core.other.networking.BreezyNetworking;
 import codyhuh.breezy.core.other.networking.WindDirectionPacket;
 import codyhuh.breezy.core.registry.BreezyBiomeModifiers;
@@ -88,6 +89,7 @@ public class Breezy {
         boolean server = event.includeServer();
 
         generator.addProvider(server, new BreezyBiomeTagsProvider(output, provider, helper));
+        generator.addProvider(server, new BreezyEntityTypeTagsProvider(output, provider, helper));
     }
 
     private void resetWindDirection(TickEvent.LevelTickEvent e) {

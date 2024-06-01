@@ -2,6 +2,7 @@ package codyhuh.breezy.common.entities;
 
 import codyhuh.breezy.common.WindDirectionSavedData;
 import codyhuh.breezy.core.other.networking.BreezyNetworking;
+import codyhuh.breezy.core.other.tags.BreezyEntityTypeTags;
 import codyhuh.breezy.core.registry.BreezyItems;
 import codyhuh.breezy.core.other.tags.BreezyItemTags;
 import net.minecraft.core.BlockPos;
@@ -148,6 +149,14 @@ public class HotAirBalloonEntity extends LivingEntity implements GeoEntity {
     @Override
     public void tick() {
         super.tick();
+        if (tickCount % 20 == 0 && random.nextBoolean() && !this.getPassengers().isEmpty())  {
+            Entity entity = this.getPassengers().get(0);
+            if (entity.getType().is(BreezyEntityTypeTags.HOT_ONES)) {
+                setLitness(3);
+            } else if (entity.isOnFire()){
+                setLitness(getLitness() + 1);
+            }
+        }
 
         if (getLitness() > 0 && tickCount % (getLitness() * 40) == 0 && random.nextBoolean()) {
             setLitness(getLitness() - 1);
@@ -237,7 +246,6 @@ public class HotAirBalloonEntity extends LivingEntity implements GeoEntity {
 
             return InteractionResult.SUCCESS;
         }
-
         return InteractionResult.PASS;
     }
 
@@ -331,7 +339,6 @@ public class HotAirBalloonEntity extends LivingEntity implements GeoEntity {
             if (data != null) {
                 Direction direction = data.getWindDirection(blockPosition().getY(), level());
 
-//                if (getControllingPassenger() instanceof Player) {
                     if (!onGround() && getLitness() > 0) {
                         Vec3i normal = direction.getNormal();
                         setDeltaMovement(getDeltaMovement().add(normal.getX(), 0, normal.getZ()).scale(0.1F));
@@ -352,11 +359,8 @@ public class HotAirBalloonEntity extends LivingEntity implements GeoEntity {
                     if (getSandbags() > 0) {
                         setDeltaMovement(getDeltaMovement().subtract(0, (getSandbags() + 1) * 0.02D, 0));
                     }
-//                } else {
-//                    setDeltaMovement(0, -0.075D, 0);
-//                }
             } else {
-//                setDeltaMovement(0, -0.075D, 0);
+                setDeltaMovement(0, -0.075D, 0);
             }
             super.travel(p_21280_);
         }

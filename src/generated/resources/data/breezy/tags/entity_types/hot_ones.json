@@ -1,0 +1,30 @@
+{
+  "values": [
+    "minecraft:blaze",
+    "minecraft:magma_cube",
+    {
+      "id": "alexsmobs:laviathan",
+      "required": false
+    },
+    {
+      "id": "alexsmobs:sunbird",
+      "required": false
+    },
+    {
+      "id": "alexscaves:nucleeper",
+      "required": false
+    },
+    {
+      "id": "alexscaves:gammaroach",
+      "required": false
+    },
+    {
+      "id": "alexscaves:radgill",
+      "required": false
+    },
+    {
+      "id": "alexscaves:raycat",
+      "required": false
+    }
+  ]
+}
