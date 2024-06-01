@@ -153,7 +153,7 @@ public class HotAirBalloonEntity extends LivingEntity implements GeoEntity {
             Entity entity = this.getPassengers().get(0);
             if (entity.getType().is(BreezyEntityTypeTags.HOT_ONES)) {
                 setLitness(3);
-            } else if (entity.isOnFire()){
+            } else if (entity.isOnFire() && getLitness() < 2){
                 setLitness(getLitness() + 1);
             }
         }
