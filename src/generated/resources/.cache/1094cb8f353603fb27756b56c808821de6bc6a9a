@@ -1,3 +1,4 @@
-// 1.20.1	2024-05-31T15:15:49.9967503	Tags for minecraft:worldgen/biome mod id breezy
+// 1.20.1	2024-06-01T10:07:59.6044844	Tags for minecraft:worldgen/biome mod id breezy
 353b0c709bb52939fd07eecd29dd9b78878a0d17 data/breezy/tags/worldgen/biome/less_wind.json
-ee7148ec0c6db9e9115788e29e1b04880e24834f data/breezy/tags/worldgen/biome/more_wind.json
+ab1b1e6e9e4929f2fbe71a798fb2d857154f4208 data/breezy/tags/worldgen/biome/more_wind.json
+ef8aa8bd1855d49999f467690637422787aa7572 data/breezy/tags/worldgen/biome/no_wind.json

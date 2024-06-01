@@ -2,11 +2,13 @@ package codyhuh.breezy.common.entities;
 
 import codyhuh.breezy.common.WindDirectionSavedData;
 import codyhuh.breezy.core.other.networking.BreezyNetworking;
+import codyhuh.breezy.core.other.tags.BreezyBiomeTags;
 import codyhuh.breezy.core.other.tags.BreezyEntityTypeTags;
 import codyhuh.breezy.core.registry.BreezyItems;
 import codyhuh.breezy.core.other.tags.BreezyItemTags;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.Holder;
 import net.minecraft.core.Vec3i;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.protocol.Packet;
@@ -31,6 +33,7 @@ import net.minecraft.world.entity.vehicle.DismountHelper;
 import net.minecraft.world.item.*;
 import net.minecraft.world.level.GameRules;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.gameevent.GameEvent;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
@@ -193,6 +196,41 @@ public class HotAirBalloonEntity extends LivingEntity implements GeoEntity {
     }
 
     @Override
+    public void travel(Vec3 p_21280_) {
+        if (isAlive()) {
+            WindDirectionSavedData data = BreezyNetworking.CLIENT_CACHE;
+            Holder<Biome> holder = level().getBiome(blockPosition());
+            if (data != null) {
+                Direction direction = data.getWindDirection(blockPosition().getY(), level());
+                if (!onGround() && getLitness() > 0) {
+                    Vec3i normal = direction.getNormal();
+                    setDeltaMovement(getDeltaMovement().add(normal.getX(), 0, normal.getZ()).scale(0.1F));
+                }
+                if (getLitness() > 0) {
+                    setDeltaMovement(getDeltaMovement().add(0, (getLitness() + 1) * 0.02D, 0));
+                    if (onGround()) {
+                        setOnGround(false);
+                        setDeltaMovement(getDeltaMovement().add(0D, 0.02D, 0D));
+                    }
+                }
+                if (!onGround() && getLitness() == 0) {
+                    setDeltaMovement(0, -0.075D, 0);
+                }
+                if (getSandbags() > 0) {
+                    setDeltaMovement(getDeltaMovement().subtract(0, (getSandbags() + 1) * 0.02D, 0));
+                }
+            } else {
+                if (holder.is(BreezyBiomeTags.NO_WIND)) {
+                    setDeltaMovement(0, getDeltaMovement().y, 0);
+                } else {
+                    setDeltaMovement(0, -0.075D, 0);
+                }
+            }
+            super.travel(p_21280_);
+        }
+    }
+
+    @Override
     public InteractionResult interactAt(Player player, Vec3 vec, InteractionHand hand) {
         return InteractionResult.PASS;
     }
@@ -330,42 +368,6 @@ public class HotAirBalloonEntity extends LivingEntity implements GeoEntity {
     public boolean isPushedByFluid(FluidType type) {
         return true;
     }
-
-    @Override
-    public void travel(Vec3 p_21280_) {
-        if (isAlive()) {
-            WindDirectionSavedData data = BreezyNetworking.CLIENT_CACHE;
-
-            if (data != null) {
-                Direction direction = data.getWindDirection(blockPosition().getY(), level());
-
-                    if (!onGround() && getLitness() > 0) {
-                        Vec3i normal = direction.getNormal();
-                        setDeltaMovement(getDeltaMovement().add(normal.getX(), 0, normal.getZ()).scale(0.1F));
-                    }
-
-                    if (getLitness() > 0) {
-                        setDeltaMovement(getDeltaMovement().add(0, (getLitness() + 1) * 0.02D, 0));
-
-                        if (onGround()) {
-                            setDeltaMovement(getDeltaMovement().add(0D, 1.0D, 0D));
-                        }
-                    }
-
-                    if (!onGround() && getLitness() == 0) {
-                        setDeltaMovement(0, -0.075D, 0);
-                    }
-
-                    if (getSandbags() > 0) {
-                        setDeltaMovement(getDeltaMovement().subtract(0, (getSandbags() + 1) * 0.02D, 0));
-                    }
-            } else {
-                setDeltaMovement(0, -0.075D, 0);
-            }
-            super.travel(p_21280_);
-        }
-    }
-
 
     public void addAdditionalSaveData(CompoundTag p_30418_) {
         super.addAdditionalSaveData(p_30418_);

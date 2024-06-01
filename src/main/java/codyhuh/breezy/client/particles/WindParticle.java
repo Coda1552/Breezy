@@ -1,5 +1,6 @@
 package codyhuh.breezy.client.particles;
 
+import codyhuh.breezy.BreezyConfig;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.particle.*;
 import net.minecraft.core.BlockPos;
@@ -20,7 +21,7 @@ public class WindParticle extends RisingParticle {
         this.hasPhysics = true;
         this.setPos(x, y, z);
         this.setSpriteFromAge(p_107724_);
-        this.setAlpha(y < level.getSeaLevel() + 20 ? 0 : 0.5F);
+        this.setAlpha(y < level.getSeaLevel() + BreezyConfig.CLIENT.minimumWindHeight.get() ? 0 : 0.5F);
     }
 
     public ParticleRenderType getRenderType() {

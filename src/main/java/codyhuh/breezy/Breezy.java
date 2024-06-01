@@ -6,7 +6,6 @@ import codyhuh.breezy.core.data.server.BreezyBiomeTagsProvider;
 import codyhuh.breezy.core.data.server.BreezyEntityTypeTagsProvider;
 import codyhuh.breezy.core.other.networking.BreezyNetworking;
 import codyhuh.breezy.core.other.networking.WindDirectionPacket;
-import codyhuh.breezy.core.registry.BreezyBiomeModifiers;
 import codyhuh.breezy.core.registry.BreezyEntities;
 import codyhuh.breezy.core.registry.BreezyItems;
 import codyhuh.breezy.core.registry.BreezyParticles;
@@ -58,7 +57,6 @@ public class Breezy {
         BreezyParticles.PARTICLES.register(bus);
         BreezyEntities.ENTITIES.register(bus);
         BreezyItems.ITEMS.register(bus);
-        BreezyBiomeModifiers.BIOME_MODIFIERS.register(bus);
 
         context.registerConfig(ModConfig.Type.COMMON, BreezyConfig.COMMON_SPEC);
         context.registerConfig(ModConfig.Type.CLIENT, BreezyConfig.CLIENT_SPEC);

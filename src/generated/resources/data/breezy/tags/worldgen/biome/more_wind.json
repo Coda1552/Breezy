@@ -1,8 +1,9 @@
 {
   "values": [
-    "minecraft:frozen_peaks",
-    "minecraft:jagged_peaks",
-    "minecraft:stony_peaks",
-    "minecraft:snowy_slopes"
+    "#forge:is_mountain",
+    "minecraft:windswept_forest",
+    "minecraft:windswept_hills",
+    "minecraft:windswept_gravelly_hills",
+    "minecraft:windswept_savanna"
   ]
 }

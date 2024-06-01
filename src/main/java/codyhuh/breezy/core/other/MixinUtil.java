@@ -14,10 +14,12 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 public class MixinUtil {
     @OnlyIn(Dist.CLIENT)
     public static void tryAddWindParticle(ClientLevel level, BlockPos pos, RandomSource random) {
-        if (!BreezyConfig.CLIENT.shouldDisplayWind.get()) return;
-        if (!level.canSeeSky(pos)) return;
-        double chance;
+        if (!BreezyConfig.CLIENT.shouldDisplayWind.get() ||
+                pos.getY() >= BreezyConfig.CLIENT.minimumWindHeight.get() + level.getSeaLevel()) return;
+        if (BreezyConfig.CLIENT.windMustSeeSky.get() && !level.canSeeSky(pos)) return;
         Holder<Biome> holder = level.getBiome(pos);
+        if (holder.is(BreezyBiomeTags.NO_WIND)) return;
+        double chance;
         if (holder.is(BreezyBiomeTags.LESS_WIND)) {
             chance = BreezyConfig.CLIENT.lowWindFrequency.get();
         } else if (holder.is(BreezyBiomeTags.MORE_WIND)) {
