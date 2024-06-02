@@ -1,4 +1,4 @@
-package codyhuh.breezy.common.entities;
+package codyhuh.breezy.common.entity;
 
 import codyhuh.breezy.BreezyConfig;
 import codyhuh.breezy.common.WindDirectionSavedData;
@@ -7,7 +7,6 @@ import codyhuh.breezy.core.other.tags.BreezyBiomeTags;
 import codyhuh.breezy.core.other.tags.BreezyEntityTypeTags;
 import codyhuh.breezy.core.other.tags.BreezyItemTags;
 import codyhuh.breezy.core.registry.BreezyItems;
-import net.minecraft.client.multiplayer.ClientPacketListener;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Holder;
@@ -22,7 +21,6 @@ import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
-import net.minecraft.sounds.SoundSource;
 import net.minecraft.tags.ItemTags;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
@@ -32,14 +30,11 @@ import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.animal.WaterAnimal;
-import net.minecraft.world.entity.animal.frog.Frog;
-import net.minecraft.world.entity.boss.enderdragon.EnderDragon;
 import net.minecraft.world.entity.monster.Skeleton;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.entity.vehicle.Boat;
 import net.minecraft.world.entity.vehicle.DismountHelper;
-import net.minecraft.world.item.DyeItem;
-import net.minecraft.world.item.Item;
-import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.*;
 import net.minecraft.world.level.GameRules;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.biome.Biome;
@@ -59,6 +54,8 @@ import software.bernie.geckolib.util.GeckoLibUtil;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
+import java.util.function.Predicate;
 
 public class HotAirBalloonEntity extends LivingEntity implements GeoEntity {
     public static final AABB BASKET_AABB = new AABB(-0.7, 0, -0.7, 0.7, 1.0, 0.7);
@@ -128,7 +125,7 @@ public class HotAirBalloonEntity extends LivingEntity implements GeoEntity {
     }
 
     @Override
-    public boolean hurt(DamageSource source, float p_38320_) {
+    public boolean hurt(@NotNull DamageSource source, float p_38320_) {
         if (this.isInvulnerableTo(source)) {
             return false;
         } else if (!this.level().isClientSide && !this.isRemoved()) {
@@ -156,14 +153,10 @@ public class HotAirBalloonEntity extends LivingEntity implements GeoEntity {
         this.discard();
         if (this.level().getGameRules().getBoolean(GameRules.RULE_DOENTITYDROPS)) {
             ItemStack itemstack = new ItemStack(BreezyItems.HOT_AIR_BALLOON.get());
-            if (this.hasCustomName()) {
-                itemstack.setHoverName(this.getCustomName());
-            }
             if (this.getColor() != DEFAULT_COLOR) {
                 CompoundTag compoundtag = itemstack.getOrCreateTagElement("display");
                 compoundtag.putInt("color", this.getColor());
             }
-
             this.spawnAtLocation(itemstack);
         }
     }
@@ -171,10 +164,10 @@ public class HotAirBalloonEntity extends LivingEntity implements GeoEntity {
     @Override
     public void tick() {
         super.tick();
-        if (!this.level().isClientSide) {
-            peterPanParticles((ServerLevel) this.level(), BASKET_AABB);
-            peterPanParticles((ServerLevel) this.level(), BALLOON_AABB);
-        }
+//        if (!this.level().isClientSide) {
+//            peterPanParticles((ServerLevel) this.level(), BASKET_AABB);
+//            peterPanParticles((ServerLevel) this.level(), BALLOON_AABB);
+//        }
         if (tickCount % 10 == 0 && random.nextBoolean() && !this.getPassengers().isEmpty()) {
             Entity entity = this.getPassengers().get(0);
             if (entity.getType().is(BreezyEntityTypeTags.HOT_ONES) && getLitness() != 3) {
@@ -206,15 +199,14 @@ public class HotAirBalloonEntity extends LivingEntity implements GeoEntity {
 
             for (Entity entity : list) {
                 if (!entity.hasPassenger(this)) {
+                    AABB validBasket = BASKET_AABB.inflate(0, 0.85, 0);
                     if (flag && this.getPassengers().isEmpty() && !entity.isPassenger() &&
-                            entity.getBbWidth() < this.getBbWidth() && entity instanceof LivingEntity &&
+                            entity.getBbWidth() < validBasket.getXsize() && entity instanceof LivingEntity &&
                             !(entity instanceof WaterAnimal) && !(entity instanceof Player)
-                            && entity.getBbHeight() < this.getBbHeight() * 2.0) {
+                            && entity.getBbHeight() < validBasket.getYsize()) {
                         entity.startRiding(this);
-                    } else if (boxInLevel(BALLOON_AABB).contains(entity.position()) ||
-                            boxInLevel(BALLOON_AABB).contains(entity.getEyePosition()) ||
-                            boxInLevel(BASKET_AABB).contains(entity.position()) ||
-                            boxInLevel(BASKET_AABB).contains(entity.getEyePosition())) {
+                    } else if (boxInLevel(BALLOON_AABB).intersects(entity.getBoundingBox()) ||
+                            boxInLevel(BASKET_AABB).intersects(entity.getBoundingBox())) {
                         this.push(entity);
                     }
                 }
@@ -247,8 +239,8 @@ public class HotAirBalloonEntity extends LivingEntity implements GeoEntity {
                 if (i > 0 && list.size() > i - 1 && this.random.nextInt(4) == 0) {
                     int j = 0;
 
-                    for(int k = 0; k < list.size(); ++k) {
-                        if (!list.get(k).isPassenger()) {
+                    for (Entity entity : list) {
+                        if (!entity.isPassenger()) {
                             ++j;
                         }
                     }
@@ -258,13 +250,16 @@ public class HotAirBalloonEntity extends LivingEntity implements GeoEntity {
                     }
                 }
 
-                for(int l = 0; l < list.size(); ++l) {
-                    Entity entity = list.get(l);
+                for (Entity entity : list) {
                     this.doPush(entity);
                 }
             }
-
         }
+    }
+
+    public void push(double x, double y, double z) {
+        this.setDeltaMovement(this.getDeltaMovement().add(x * 0.8, y * 0.8, z * 0.8));
+        this.hasImpulse = true;
     }
 
     @Override
@@ -304,7 +299,29 @@ public class HotAirBalloonEntity extends LivingEntity implements GeoEntity {
     }
 
     @Override
-    public InteractionResult interactAt(Player player, Vec3 vec, InteractionHand hand) {
+    @NotNull
+    public InteractionResult interactAt(@NotNull Player player, @NotNull Vec3 vec, @NotNull InteractionHand hand) {
+        if (this.hasPassenger(player)) {
+            Vec3 playerEye = player.getEyePosition();
+            Vec3 endPt = playerEye.add(player.getViewVector(1.0F).normalize().scale(5.0F));
+            Predicate<Entity> entityFilter = entity -> entity != this && entity != player;
+            double closestDistance = Double.MAX_VALUE;
+            Entity closestEntity = null;
+            for(Entity entity : level().getEntities(player, new AABB(playerEye, endPt).inflate(1.0D), entityFilter)) {
+                Optional<Vec3> intersection = entity.getBoundingBox().clip(playerEye, endPt);
+                if (intersection.isPresent()) {
+                    double distance = playerEye.distanceToSqr(intersection.get());
+                    if (distance < closestDistance) {
+                        closestDistance = distance;
+                        closestEntity = entity;
+                    }
+                }
+            }
+
+            if (closestEntity != null) {
+                return player.interactOn(closestEntity, hand);
+            }
+        }
         AABB passengerBox = null;
         if (!this.getPassengers().isEmpty() && !this.hasPassenger(player)) {
             passengerBox = this.getPassengers().get(0).getBoundingBox();
@@ -315,16 +332,14 @@ public class HotAirBalloonEntity extends LivingEntity implements GeoEntity {
     }
 
     boolean isLookingAtHitbox(Player player, AABB box) {
+        Vec3 playerEyePosition = player.getEyePosition(1.0F);
         Vec3 playerViewVector = player.getViewVector(1.0F).normalize();
-        for (double i = 0; i < 5; i += 0.5) {
-            Vec3 point = player.getEyePosition(1.0F).add(playerViewVector.scale(i));
-//            player.level().addParticle(ParticleTypes.END_ROD, point.x, point.y, point.z, 0, 0, 0);
-            if (box.contains(point)) {
-                return true;
-            }
-        }
-        return false;
+        Vec3 lookTarget = playerEyePosition.add(playerViewVector.scale(5.0)); // Assume a maximum view distance of 5 units
+
+        Optional<Vec3> intersection = box.clip(playerEyePosition, lookTarget);
+        return intersection.isPresent();
     }
+
 
     public AABB boxInLevel(AABB box) {
         return new AABB(box.minX + this.getX(), box.minY + getY(), box.minZ + getZ(),
@@ -332,8 +347,8 @@ public class HotAirBalloonEntity extends LivingEntity implements GeoEntity {
     }
 
     @Override
-    public InteractionResult interact(Player player, InteractionHand hand) {
-        return InteractionResult.PASS;
+    public @NotNull InteractionResult interact(@NotNull Player player, @NotNull InteractionHand hand) {
+        return this.interactAt(player, Vec3.ZERO, hand);
     }
 
     public InteractionResult interactionBusiness(Player player, InteractionHand hand, boolean basket, boolean balloon, boolean passenger) {
@@ -346,7 +361,11 @@ public class HotAirBalloonEntity extends LivingEntity implements GeoEntity {
             if (getLitness() < 5) {
                 if (itemstack.is(BreezyItemTags.IGNITION_SOURCES)) {
                     setLitness(getLitness() + 2);
-                    playSound(SoundEvents.CAMPFIRE_CRACKLE, 1.0F, 1.0F);
+                    playSound(SoundEvents.FLINTANDSTEEL_USE, 1.0F, 1.0F);
+                    Vec3 origin = boxInLevel(BALLOON_AABB).getCenter().subtract(0, 1.85,0);
+                    for (int i = 0; i < 5; i++) {
+                        level().addParticle(ParticleTypes.LAVA, origin.x, origin.y, origin.z, 0, 0, 0);
+                    }
                     itemstack.hurtAndBreak(1, player, p -> p.broadcastBreakEvent(player.getUsedItemHand()));
                     return InteractionResult.SUCCESS;
                 }
@@ -440,7 +459,7 @@ public class HotAirBalloonEntity extends LivingEntity implements GeoEntity {
 
         for (Pose pose : p_30563_.getDismountPoses()) {
             blockpos$mutableblockpos.set(d0, d1, d2);
-            double d3 = this.getBoundingBox().maxY + 0.75D;
+            double d3 = this.getBoundingBox().maxY - 3.5;
 
             while (true) {
                 double d4 = this.level().getBlockFloorHeight(blockpos$mutableblockpos);
@@ -468,20 +487,20 @@ public class HotAirBalloonEntity extends LivingEntity implements GeoEntity {
     }
 
     @Override
-    public Vec3 getDismountLocationForPassenger(LivingEntity p_30576_) {
-        Vec3 vec3 = getCollisionHorizontalEscapeVector(this.getBbWidth(), p_30576_.getBbWidth(), this.getYRot() + (p_30576_.getMainArm() == HumanoidArm.RIGHT ? 90.0F : -90.0F));
-        Vec3 vec31 = this.getDismountLocationInDirection(vec3, p_30576_);
+    public @NotNull Vec3 getDismountLocationForPassenger(LivingEntity living) {
+        Vec3 vec3 = getCollisionHorizontalEscapeVector(this.getBbWidth(), living.getBbWidth(), this.getYRot() + (living.getMainArm() == HumanoidArm.RIGHT ? 90.0F : -90.0F));
+        Vec3 vec31 = this.getDismountLocationInDirection(vec3, living);
         if (vec31 != null) {
             return vec31;
         } else {
-            Vec3 vec32 = getCollisionHorizontalEscapeVector(this.getBbWidth(), p_30576_.getBbWidth(), this.getYRot() + (p_30576_.getMainArm() == HumanoidArm.LEFT ? 90.0F : -90.0F));
-            Vec3 vec33 = this.getDismountLocationInDirection(vec32, p_30576_);
+            Vec3 vec32 = getCollisionHorizontalEscapeVector(this.getBbWidth(), living.getBbWidth(), this.getYRot() + (living.getMainArm() == HumanoidArm.LEFT ? 90.0F : -90.0F));
+            Vec3 vec33 = this.getDismountLocationInDirection(vec32, living);
             return vec33 != null ? vec33 : this.position();
         }
     }
 
     @Override
-    public Packet<ClientGamePacketListener> getAddEntityPacket() {
+    public @NotNull Packet<ClientGamePacketListener> getAddEntityPacket() {
         return new ClientboundAddEntityPacket(this);
     }
 
@@ -490,7 +509,7 @@ public class HotAirBalloonEntity extends LivingEntity implements GeoEntity {
         return true;
     }
 
-    public boolean canCollideWith(Entity p_38376_) {
+    public boolean canCollideWith(@NotNull Entity p_38376_) {
         return canVehicleCollide(this, p_38376_);
     }
 
@@ -508,12 +527,12 @@ public class HotAirBalloonEntity extends LivingEntity implements GeoEntity {
         return true;
     }
 
-    public void addAdditionalSaveData(CompoundTag tag) {
+    public void addAdditionalSaveData(@NotNull CompoundTag tag) {
         super.addAdditionalSaveData(tag);
         tag.putInt("CustomColor", this.getColor());
     }
 
-    public void readAdditionalSaveData(CompoundTag tag) {
+    public void readAdditionalSaveData(@NotNull CompoundTag tag) {
         super.readAdditionalSaveData(tag);
         if (tag.contains("CustomColor", 99)) {
             this.setColor((tag.getInt("CustomColor")));
@@ -545,22 +564,22 @@ public class HotAirBalloonEntity extends LivingEntity implements GeoEntity {
     }
 
     @Override
-    public boolean causeFallDamage(float pFallDistance, float pMultiplier, DamageSource pSource) {
+    public boolean causeFallDamage(float pFallDistance, float pMultiplier, @NotNull DamageSource pSource) {
         return false;
     }
 
     @Override
-    public Iterable<ItemStack> getArmorSlots() {
+    public @NotNull Iterable<ItemStack> getArmorSlots() {
         return Collections.emptyList();
     }
 
     @Override
-    public ItemStack getItemBySlot(EquipmentSlot p_21127_) {
+    public @NotNull ItemStack getItemBySlot(@NotNull EquipmentSlot p_21127_) {
         return ItemStack.EMPTY;
     }
 
     @Override
-    public void setItemSlot(EquipmentSlot p_21036_, ItemStack p_21037_) {
+    public void setItemSlot(@NotNull EquipmentSlot p_21036_, @NotNull ItemStack p_21037_) {
     }
 
     @Override
@@ -568,7 +587,7 @@ public class HotAirBalloonEntity extends LivingEntity implements GeoEntity {
         if (!this.getPassengers().isEmpty() && this.getPassengers().get(0) instanceof Skeleton) {
             return 0.65;
         }
-        return 0.35D;
+        return 0.38D;
     }
 
     @Override
@@ -580,7 +599,7 @@ public class HotAirBalloonEntity extends LivingEntity implements GeoEntity {
         return BreezyConfig.CLIENT.balloonsAlwaysRender.get() || super.shouldRenderAtSqrDistance(p_33107_);
     }
 
-    public boolean addEffect(MobEffectInstance p_182397_, @javax.annotation.Nullable Entity p_182398_) {
+    public boolean addEffect(@NotNull MobEffectInstance p_182397_, @javax.annotation.Nullable Entity p_182398_) {
         return false;
     }
 
@@ -594,6 +613,10 @@ public class HotAirBalloonEntity extends LivingEntity implements GeoEntity {
 
     public ItemStack getPickedResult(HitResult target) {
         return new ItemStack(BreezyItems.HOT_AIR_BALLOON.get());
+    }
+
+    public boolean startRiding(Entity p_19966_, boolean p_19967_) {
+        return false;
     }
 
     private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);

@@ -1,6 +1,6 @@
-package codyhuh.breezy.common.items;
+package codyhuh.breezy.common.item;
 
-import codyhuh.breezy.common.entities.HotAirBalloonEntity;
+import codyhuh.breezy.common.entity.HotAirBalloonEntity;
 import codyhuh.breezy.core.registry.BreezyEntities;
 import codyhuh.breezy.core.registry.BreezyItems;
 import net.minecraft.core.BlockPos;
@@ -16,8 +16,11 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
+import org.jetbrains.annotations.NotNull;
 
-import static codyhuh.breezy.common.entities.HotAirBalloonEntity.DEFAULT_COLOR;
+import java.util.Objects;
+
+import static codyhuh.breezy.common.entity.HotAirBalloonEntity.DEFAULT_COLOR;
 
 public class HotAirBalloonItem extends Item implements DyeableLeatherItem {
 
@@ -32,6 +35,7 @@ public class HotAirBalloonItem extends Item implements DyeableLeatherItem {
                 ? compoundtag.getInt("color") : DEFAULT_COLOR;
     }
 
+    @NotNull
     @Override
     public InteractionResult useOn(UseOnContext context) {
         Level world = context.getLevel();
@@ -49,15 +53,10 @@ public class HotAirBalloonItem extends Item implements DyeableLeatherItem {
             } else {
                 blockpos1 = blockpos.relative(direction, 1);
             }
-
-            ItemStack stack = context.getItemInHand();
             HotAirBalloonEntity entity = BreezyEntities.HOT_AIR_BALLOON.get().create(context.getLevel());
             if (entity == null) return InteractionResult.FAIL;
 
-            entity.moveTo(blockpos1.getX() + 0.5, blockpos1.getY(), blockpos1.getZ() + 0.5, context.getPlayer().yRotO, 0f);
-
-            if (stack.hasCustomHoverName()) entity.setCustomName(stack.getHoverName());
-
+            entity.moveTo(blockpos1.getX() + 0.5, blockpos1.getY(), blockpos1.getZ() + 0.5, Objects.requireNonNull(context.getPlayer()).yRotO, 0f);
             int color = getColor(itemstack);
             entity.setColor(color);
 

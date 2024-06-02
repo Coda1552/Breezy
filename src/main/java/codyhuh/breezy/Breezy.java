@@ -1,7 +1,7 @@
 package codyhuh.breezy;
 
 import codyhuh.breezy.common.WindDirectionSavedData;
-import codyhuh.breezy.common.entities.HotAirBalloonEntity;
+import codyhuh.breezy.common.entity.HotAirBalloonEntity;
 import codyhuh.breezy.core.data.server.BreezyBiomeTagsProvider;
 import codyhuh.breezy.core.data.server.BreezyEntityTypeTagsProvider;
 import codyhuh.breezy.core.other.networking.BreezyNetworking;

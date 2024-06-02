@@ -1,7 +1,7 @@
 package codyhuh.breezy.core.registry;
 
 import codyhuh.breezy.Breezy;
-import codyhuh.breezy.common.items.HotAirBalloonItem;
+import codyhuh.breezy.common.item.HotAirBalloonItem;
 import net.minecraft.world.item.Item;
 import net.minecraftforge.registries.DeferredRegister;
 import net.minecraftforge.registries.ForgeRegistries;

@@ -1,7 +1,7 @@
 package codyhuh.breezy.core.registry;
 
 import codyhuh.breezy.Breezy;
-import codyhuh.breezy.common.entities.HotAirBalloonEntity;
+import codyhuh.breezy.common.entity.HotAirBalloonEntity;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.MobCategory;

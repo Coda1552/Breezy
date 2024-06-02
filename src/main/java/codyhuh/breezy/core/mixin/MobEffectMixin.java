@@ -1,6 +1,6 @@
 package codyhuh.breezy.core.mixin;
 
-import codyhuh.breezy.common.entities.HotAirBalloonEntity;
+import codyhuh.breezy.common.entity.HotAirBalloonEntity;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.Entity;

@@ -1,7 +1,7 @@
 package codyhuh.breezy.client.render;
 
 import codyhuh.breezy.Breezy;
-import codyhuh.breezy.common.entities.HotAirBalloonEntity;
+import codyhuh.breezy.common.entity.HotAirBalloonEntity;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import net.minecraft.client.renderer.MultiBufferSource;

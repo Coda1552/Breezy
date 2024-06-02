@@ -5,7 +5,6 @@
   "minVersion": "0.8",
   "refmap": "breezy.refmap.json",
   "mixins": [
-    "BoatMixin",
     "MobEffectMixin"
   ],
   "client": [
