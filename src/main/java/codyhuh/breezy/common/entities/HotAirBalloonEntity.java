@@ -5,12 +5,14 @@ import codyhuh.breezy.common.WindDirectionSavedData;
 import codyhuh.breezy.core.other.networking.BreezyNetworking;
 import codyhuh.breezy.core.other.tags.BreezyBiomeTags;
 import codyhuh.breezy.core.other.tags.BreezyEntityTypeTags;
-import codyhuh.breezy.core.registry.BreezyItems;
 import codyhuh.breezy.core.other.tags.BreezyItemTags;
+import codyhuh.breezy.core.registry.BreezyItems;
+import net.minecraft.client.multiplayer.ClientPacketListener;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Holder;
 import net.minecraft.core.Vec3i;
+import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
@@ -18,9 +20,10 @@ import net.minecraft.network.protocol.game.ClientboundAddEntityPacket;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.tags.ItemTags;
-import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.damagesource.DamageSource;
@@ -29,17 +32,19 @@ import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.animal.WaterAnimal;
-import net.minecraft.world.entity.animal.Wolf;
-import net.minecraft.world.entity.decoration.ArmorStand;
+import net.minecraft.world.entity.animal.frog.Frog;
+import net.minecraft.world.entity.boss.enderdragon.EnderDragon;
 import net.minecraft.world.entity.monster.Skeleton;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.vehicle.DismountHelper;
-import net.minecraft.world.item.*;
+import net.minecraft.world.item.DyeItem;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.GameRules;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.biome.Biome;
+import net.minecraft.world.level.entity.EntityTypeTest;
 import net.minecraft.world.level.gameevent.GameEvent;
-import net.minecraft.world.level.material.MapColor;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
@@ -56,6 +61,9 @@ import java.util.Collections;
 import java.util.List;
 
 public class HotAirBalloonEntity extends LivingEntity implements GeoEntity {
+    public static final AABB BASKET_AABB = new AABB(-0.7, 0, -0.7, 0.7, 1.0, 0.7);
+    public static final AABB BALLOON_AABB = new AABB(-1.2, 2.4, -1.2, 1.2, 5, 1.2);
+
     public static final int DEFAULT_COLOR = 16351261;
 
     private static final EntityDataAccessor<Integer> LITNESS = SynchedEntityData.defineId(HotAirBalloonEntity.class, EntityDataSerializers.INT);
@@ -163,6 +171,10 @@ public class HotAirBalloonEntity extends LivingEntity implements GeoEntity {
     @Override
     public void tick() {
         super.tick();
+        if (!this.level().isClientSide) {
+            peterPanParticles((ServerLevel) this.level(), BASKET_AABB);
+            peterPanParticles((ServerLevel) this.level(), BALLOON_AABB);
+        }
         if (tickCount % 10 == 0 && random.nextBoolean() && !this.getPassengers().isEmpty()) {
             Entity entity = this.getPassengers().get(0);
             if (entity.getType().is(BreezyEntityTypeTags.HOT_ONES) && getLitness() != 3) {
@@ -199,11 +211,59 @@ public class HotAirBalloonEntity extends LivingEntity implements GeoEntity {
                             !(entity instanceof WaterAnimal) && !(entity instanceof Player)
                             && entity.getBbHeight() < this.getBbHeight() * 2.0) {
                         entity.startRiding(this);
-                    } else {
+                    } else if (boxInLevel(BALLOON_AABB).contains(entity.position()) ||
+                            boxInLevel(BALLOON_AABB).contains(entity.getEyePosition()) ||
+                            boxInLevel(BASKET_AABB).contains(entity.position()) ||
+                            boxInLevel(BASKET_AABB).contains(entity.getEyePosition())) {
                         this.push(entity);
                     }
                 }
             }
+        }
+    }
+
+    private void peterPanParticles(ServerLevel level, AABB box) {
+        if (level.random.nextBoolean()) return;
+        for (int i = 0; i < 1; i++) {
+            double x = box.minX + (box.maxX - box.minX) * random.nextDouble();
+            double y = box.minY + (box.maxY - box.minY) * random.nextDouble();
+            double z = box.minZ + (box.maxZ - box.minZ) * random.nextDouble();
+            level.sendParticles(ParticleTypes.END_ROD, this.getX() + x, this.getY() + y, this.getZ() + z, 1, 0, 0, 0, 0);
+        }
+    }
+
+    protected void pushEntities() {
+        theRealPush(boxInLevel(BALLOON_AABB));
+        theRealPush(boxInLevel(BASKET_AABB));
+    }
+
+    private void theRealPush(AABB box) {
+        if (this.level().isClientSide()) {
+            this.level().getEntities(EntityTypeTest.forClass(Player.class), box, EntitySelector.pushableBy(this)).forEach(this::doPush);
+        } else {
+            List<Entity> list = this.level().getEntities(this, box, EntitySelector.pushableBy(this));
+            if (!list.isEmpty()) {
+                int i = this.level().getGameRules().getInt(GameRules.RULE_MAX_ENTITY_CRAMMING);
+                if (i > 0 && list.size() > i - 1 && this.random.nextInt(4) == 0) {
+                    int j = 0;
+
+                    for(int k = 0; k < list.size(); ++k) {
+                        if (!list.get(k).isPassenger()) {
+                            ++j;
+                        }
+                    }
+
+                    if (j > i - 1) {
+                        this.hurt(this.damageSources().cramming(), 6.0F);
+                    }
+                }
+
+                for(int l = 0; l < list.size(); ++l) {
+                    Entity entity = list.get(l);
+                    this.doPush(entity);
+                }
+            }
+
         }
     }
 
@@ -243,59 +303,89 @@ public class HotAirBalloonEntity extends LivingEntity implements GeoEntity {
         }
     }
 
-    private static double lerp(double start, double end, double alpha) {
-        return start + alpha * (end - start);
-    }
-
     @Override
     public InteractionResult interactAt(Player player, Vec3 vec, InteractionHand hand) {
-        return InteractionResult.PASS;
+        AABB passengerBox = null;
+        if (!this.getPassengers().isEmpty() && !this.hasPassenger(player)) {
+            passengerBox = this.getPassengers().get(0).getBoundingBox();
+        }
+        return this.interactionBusiness(player, hand,
+                isLookingAtHitbox(player, boxInLevel(BASKET_AABB)), isLookingAtHitbox(player, boxInLevel(BALLOON_AABB)),
+                passengerBox != null && isLookingAtHitbox(player, passengerBox));
+    }
+
+    boolean isLookingAtHitbox(Player player, AABB box) {
+        Vec3 playerViewVector = player.getViewVector(1.0F).normalize();
+        for (double i = 0; i < 5; i += 0.5) {
+            Vec3 point = player.getEyePosition(1.0F).add(playerViewVector.scale(i));
+//            player.level().addParticle(ParticleTypes.END_ROD, point.x, point.y, point.z, 0, 0, 0);
+            if (box.contains(point)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public AABB boxInLevel(AABB box) {
+        return new AABB(box.minX + this.getX(), box.minY + getY(), box.minZ + getZ(),
+                box.maxX + getX(), box.maxY + getY(), box.maxZ + getZ());
     }
 
     @Override
     public InteractionResult interact(Player player, InteractionHand hand) {
+        return InteractionResult.PASS;
+    }
+
+    public InteractionResult interactionBusiness(Player player, InteractionHand hand, boolean basket, boolean balloon, boolean passenger) {
+        if (passenger && !basket && !balloon && !this.getPassengers().isEmpty() && !this.hasPassenger(player)) {
+            Entity rider = getPassengers().get(0);
+            return player.interactOn(rider, hand);
+        }
         ItemStack itemstack = player.getItemInHand(hand);
-        if (getLitness() < 5) {
-            if (itemstack.is(BreezyItemTags.IGNITION_SOURCES)) {
-                setLitness(getLitness() + 2);
-                playSound(SoundEvents.CAMPFIRE_CRACKLE, 1.0F, 1.0F);
-                itemstack.hurtAndBreak(1, player, p -> p.broadcastBreakEvent(player.getUsedItemHand()));
-                return InteractionResult.SUCCESS;
+        if (balloon) {
+            if (getLitness() < 5) {
+                if (itemstack.is(BreezyItemTags.IGNITION_SOURCES)) {
+                    setLitness(getLitness() + 2);
+                    playSound(SoundEvents.CAMPFIRE_CRACKLE, 1.0F, 1.0F);
+                    itemstack.hurtAndBreak(1, player, p -> p.broadcastBreakEvent(player.getUsedItemHand()));
+                    return InteractionResult.SUCCESS;
+                }
+            }
+            Item item = itemstack.getItem();
+            if (item instanceof DyeItem dye) {
+                int dyecolor = dye.getDyeColor().getFireworkColor();
+                if (dyecolor != this.getColor()) {
+                    this.dyeBalloon(dye);
+                    if (!player.getAbilities().instabuild) {
+                        itemstack.shrink(1);
+                    }
+                    return InteractionResult.SUCCESS;
+                }
             }
         }
-        Item item = itemstack.getItem();
-        if (item instanceof DyeItem dye) {
-            int dyecolor = dye.getDyeColor().getFireworkColor();
-            if (dyecolor != this.getColor()) {
-                this.dyeBalloon(dye);
-                if (!player.getAbilities().instabuild) {
+        if (basket) {
+            if (getSandbags() < 8 && player.getItemInHand(hand).is(ItemTags.SAND)) {
+                setSandbags(getSandbags() + 1);
+                playSound(SoundEvents.SAND_PLACE, 1.0F, 1.5F);
+                if (!player.isCreative()) {
                     itemstack.shrink(1);
                 }
+
                 return InteractionResult.SUCCESS;
             }
-        }
-        if (getSandbags() < 8 && player.getItemInHand(hand).is(ItemTags.SAND)) {
-            setSandbags(getSandbags() + 1);
-            playSound(SoundEvents.SAND_PLACE, 1.0F, 1.0F);
+            if (getSandbags() > 0 && player.getItemInHand(hand).is(Tags.Items.SHEARS)) {
+                setSandbags(getSandbags() - 1);
+                playSound(SoundEvents.SHEEP_SHEAR, 1.0F, 1.0F);
+                itemstack.hurtAndBreak(1, player, p -> p.broadcastBreakEvent(player.getUsedItemHand()));
 
-            if (!player.isCreative()) {
-                itemstack.shrink(1);
-            }
-
-            return InteractionResult.SUCCESS;
-        }
-        if (getSandbags() > 0 && player.getItemInHand(hand).is(Tags.Items.SHEARS)) {
-            setSandbags(getSandbags() - 1);
-            playSound(SoundEvents.SHEEP_SHEAR, 1.0F, 1.0F);
-            itemstack.hurtAndBreak(1, player, p -> p.broadcastBreakEvent(player.getUsedItemHand()));
-
-            return InteractionResult.SUCCESS;
-        }
-        if (!hasPassenger(player) && player.getItemInHand(hand).isEmpty()) {
-            if (!this.level().isClientSide) {
-                return player.startRiding(this) ? InteractionResult.CONSUME : InteractionResult.PASS;
-            } else {
                 return InteractionResult.SUCCESS;
+            }
+            if (!hasPassenger(player) && player.getItemInHand(hand).isEmpty()) {
+                if (!this.level().isClientSide) {
+                    return player.startRiding(this) ? InteractionResult.CONSUME : InteractionResult.PASS;
+                } else {
+                    return InteractionResult.SUCCESS;
+                }
             }
         }
         return InteractionResult.PASS;
@@ -499,7 +589,7 @@ public class HotAirBalloonEntity extends LivingEntity implements GeoEntity {
     }
 
     public @NotNull AABB getBoundingBoxForCulling() {
-        return super.getBoundingBoxForCulling().inflate(0.2, 3.0, 0.2);
+        return super.getBoundingBoxForCulling().inflate(0.2, 0.2, 0.2);
     }
 
     public ItemStack getPickedResult(HitResult target) {
