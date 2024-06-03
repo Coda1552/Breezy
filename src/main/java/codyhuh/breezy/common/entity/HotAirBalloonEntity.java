@@ -301,33 +301,8 @@ public class HotAirBalloonEntity extends LivingEntity implements GeoEntity {
     @Override
     @NotNull
     public InteractionResult interactAt(@NotNull Player player, @NotNull Vec3 vec, @NotNull InteractionHand hand) {
-        if (this.hasPassenger(player)) {
-            Vec3 playerEye = player.getEyePosition();
-            Vec3 endPt = playerEye.add(player.getViewVector(1.0F).normalize().scale(player.getEntityReach()));
-            Predicate<Entity> entityFilter = entity -> entity != this && entity != player;
-            double closestDistance = Double.MAX_VALUE;
-            Entity closestEntity = null;
-            for(Entity entity : level().getEntities(player, new AABB(playerEye, endPt).inflate(1.0D), entityFilter)) {
-                Optional<Vec3> intersection = entity.getBoundingBox().clip(playerEye, endPt);
-                if (intersection.isPresent()) {
-                    double distance = playerEye.distanceToSqr(intersection.get());
-                    if (distance < closestDistance) {
-                        closestDistance = distance;
-                        closestEntity = entity;
-                    }
-                }
-            }
-            if (closestEntity != null) {
-                return player.interactOn(closestEntity, hand);
-            }
-        }
-        AABB passengerBox = null;
-        if (!this.getPassengers().isEmpty() && !this.hasPassenger(player)) {
-            passengerBox = this.getPassengers().get(0).getBoundingBox();
-        }
         return this.interactionBusiness(player, hand,
-                isLookingAtHitbox(player, boxInLevel(BASKET_AABB)), isLookingAtHitbox(player, boxInLevel(BALLOON_AABB)),
-                passengerBox != null && isLookingAtHitbox(player, passengerBox));
+                isLookingAtHitbox(player, boxInLevel(BASKET_AABB)), isLookingAtHitbox(player, boxInLevel(BALLOON_AABB)));
     }
 
     boolean isLookingAtHitbox(Player player, AABB box) {
@@ -350,8 +325,8 @@ public class HotAirBalloonEntity extends LivingEntity implements GeoEntity {
         return this.interactAt(player, Vec3.ZERO, hand);
     }
 
-    public InteractionResult interactionBusiness(Player player, InteractionHand hand, boolean basket, boolean balloon, boolean passenger) {
-        if (passenger && !basket && !balloon && !this.getPassengers().isEmpty() && !this.hasPassenger(player)) {
+    public InteractionResult interactionBusiness(Player player, InteractionHand hand, boolean basket, boolean balloon) {
+        if (!basket && !balloon && !this.getPassengers().isEmpty() && !this.hasPassenger(player)) {
             Entity rider = getPassengers().get(0);
             return player.interactOn(rider, hand);
         }
