@@ -42,24 +42,7 @@ public class MixinUtil {
         }
     }
 
-    public static EntityHitResult handlePassengerWoes(Projectile projectile, EntityHitResult result) {
-        System.out.println(result.getEntity());
-        if (result.getEntity() instanceof HotAirBalloonEntity balloon) {
-            for (double i = 0; i < 5; i += 0.5) {
-                Vec3 point = projectile.getEyePosition(1.0F).add(projectile.getDeltaMovement().scale(i));
-//                System.out.println(point);
-                projectile.level().addParticle(ParticleTypes.END_ROD, point.x, point.y, point.z, 0, 0, 0);
-            }
-            if (balloon.getFirstPassenger() != null) {
-                result = new EntityHitResult(balloon.getFirstPassenger());
-                return result;
-            }
-            if (isNotTargetingBalloonOrBasket(projectile, balloon, projectile.getDeltaMovement())) {
-                projectile.hasImpulse = true;
-                System.out.println("This projectile has been deemed innocent.");
-                return null;
-            }
-        }
-        return result;
+    public static boolean dangerousPredicate() {
+        return false;
     }
 }

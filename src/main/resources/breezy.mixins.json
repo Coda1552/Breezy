@@ -7,7 +7,7 @@
   "mixins": [
     "MobEffectMixin",
     "MobMixin",
-    "ProjectileMixin"
+    "ProjectileUtilMixin"
   ],
   "client": [
     "ClientLevelMixin"
