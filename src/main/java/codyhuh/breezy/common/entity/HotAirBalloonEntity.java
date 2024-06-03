@@ -199,7 +199,7 @@ public class HotAirBalloonEntity extends LivingEntity implements GeoEntity {
 
             for (Entity entity : list) {
                 if (!entity.hasPassenger(this)) {
-                    AABB validBasket = BASKET_AABB.inflate(0, 0.85, 0);
+                    AABB validBasket = BASKET_AABB.inflate(-0.2, 0.85, -0.2);
                     if (flag && this.getPassengers().isEmpty() && !entity.isPassenger() &&
                             entity.getBbWidth() < validBasket.getXsize() && entity instanceof LivingEntity &&
                             !(entity instanceof WaterAnimal) && !(entity instanceof Player)
@@ -303,7 +303,7 @@ public class HotAirBalloonEntity extends LivingEntity implements GeoEntity {
     public InteractionResult interactAt(@NotNull Player player, @NotNull Vec3 vec, @NotNull InteractionHand hand) {
         if (this.hasPassenger(player)) {
             Vec3 playerEye = player.getEyePosition();
-            Vec3 endPt = playerEye.add(player.getViewVector(1.0F).normalize().scale(5.0F));
+            Vec3 endPt = playerEye.add(player.getViewVector(1.0F).normalize().scale(player.getEntityReach()));
             Predicate<Entity> entityFilter = entity -> entity != this && entity != player;
             double closestDistance = Double.MAX_VALUE;
             Entity closestEntity = null;
@@ -317,7 +317,6 @@ public class HotAirBalloonEntity extends LivingEntity implements GeoEntity {
                     }
                 }
             }
-
             if (closestEntity != null) {
                 return player.interactOn(closestEntity, hand);
             }
@@ -334,7 +333,7 @@ public class HotAirBalloonEntity extends LivingEntity implements GeoEntity {
     boolean isLookingAtHitbox(Player player, AABB box) {
         Vec3 playerEyePosition = player.getEyePosition(1.0F);
         Vec3 playerViewVector = player.getViewVector(1.0F).normalize();
-        Vec3 lookTarget = playerEyePosition.add(playerViewVector.scale(5.0)); // Assume a maximum view distance of 5 units
+        Vec3 lookTarget = playerEyePosition.add(playerViewVector.scale(player.getEntityReach()));
 
         Optional<Vec3> intersection = box.clip(playerEyePosition, lookTarget);
         return intersection.isPresent();
@@ -399,7 +398,7 @@ public class HotAirBalloonEntity extends LivingEntity implements GeoEntity {
 
                 return InteractionResult.SUCCESS;
             }
-            if (!hasPassenger(player) && player.getItemInHand(hand).isEmpty()) {
+            if (getPassengers().isEmpty()) {
                 if (!this.level().isClientSide) {
                     return player.startRiding(this) ? InteractionResult.CONSUME : InteractionResult.PASS;
                 } else {

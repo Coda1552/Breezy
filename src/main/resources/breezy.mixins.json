@@ -5,7 +5,10 @@
   "minVersion": "0.8",
   "refmap": "breezy.refmap.json",
   "mixins": [
-    "MobEffectMixin"
+    "MobEffectMixin",
+    "MobMixin",
+    "ProjectileAccessor",
+    "ProjectileMixin"
   ],
   "client": [
     "ClientLevelMixin"
