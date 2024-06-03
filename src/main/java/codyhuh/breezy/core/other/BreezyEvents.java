@@ -2,8 +2,7 @@ package codyhuh.breezy.core.other;
 
 import codyhuh.breezy.Breezy;
 import codyhuh.breezy.common.entity.HotAirBalloonEntity;
-import codyhuh.breezy.core.mixin.ProjectileAccessor;
-import net.minecraft.client.player.KeyboardInput;
+import codyhuh.breezy.core.mixin.ProjectileMixin;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
@@ -17,8 +16,6 @@ import net.minecraftforge.event.entity.player.AttackEntityEvent;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
-
-import java.util.function.Predicate;
 
 import static codyhuh.breezy.core.other.HitBoxUtil.*;
 
@@ -40,7 +37,7 @@ public class BreezyEvents {
                 if (isNotTargetingBalloonOrBasket(projectile, balloon, projectile.getDeltaMovement())) {
                     if (passenger != null && findClosestEntity(projectile, balloon, projectile.getDeltaMovement()) == passenger) {
                         event.setImpactResult(ProjectileImpactEvent.ImpactResult.STOP_AT_CURRENT_NO_DAMAGE);
-                        ((ProjectileAccessor) projectile).callOnHitEntity(new EntityHitResult(passenger));
+                        ((ProjectileMixin) projectile).callOnHitEntity(new EntityHitResult(passenger));
                     } else {
                         event.setImpactResult(ProjectileImpactEvent.ImpactResult.SKIP_ENTITY);
                     }
