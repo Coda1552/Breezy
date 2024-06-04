@@ -1,6 +1,6 @@
 package codyhuh.breezy.core.mixin;
 
-import codyhuh.breezy.core.other.MixinUtil;
+import codyhuh.breezy.core.other.util.ClientLevelMixinUtil;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.core.BlockPos;
 import net.minecraft.util.RandomSource;
@@ -21,6 +21,6 @@ public class ClientLevelMixin {
                             BlockPos.MutableBlockPos pos, CallbackInfo ci,
                             int i, int j, int k, BlockState blockstate, FluidState fluidstate) {
         ClientLevel level = (ClientLevel)(Object) this;
-        MixinUtil.tryAddWindParticle(level, new BlockPos(i, j, k), random);
+        ClientLevelMixinUtil.tryAddWindParticle(level, new BlockPos(i, j, k), random);
     }
 }

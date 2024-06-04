@@ -1,14 +1,17 @@
 package codyhuh.breezy;
 
-import codyhuh.breezy.common.WindDirectionSavedData;
+import codyhuh.breezy.common.network.WindDirectionSavedData;
 import codyhuh.breezy.common.entity.HotAirBalloonEntity;
 import codyhuh.breezy.core.data.server.BreezyBiomeTagsProvider;
 import codyhuh.breezy.core.data.server.BreezyEntityTypeTagsProvider;
-import codyhuh.breezy.core.other.networking.BreezyNetworking;
-import codyhuh.breezy.core.other.networking.WindDirectionPacket;
+import codyhuh.breezy.common.network.BreezyNetworking;
+import codyhuh.breezy.common.network.WindDirectionPacket;
+import codyhuh.breezy.common.network.NewWindSavedData;
 import codyhuh.breezy.core.registry.BreezyEntities;
 import codyhuh.breezy.core.registry.BreezyItems;
 import codyhuh.breezy.core.registry.BreezyParticles;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.data.DataGenerator;
 import net.minecraft.data.PackOutput;
@@ -24,6 +27,7 @@ import net.minecraftforge.event.BuildCreativeModeTabContentsEvent;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.entity.EntityAttributeCreationEvent;
 import net.minecraftforge.event.entity.EntityJoinLevelEvent;
+import net.minecraftforge.event.server.ServerStartingEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.common.Mod;
@@ -93,15 +97,15 @@ public class Breezy {
     private void resetWindDirection(TickEvent.LevelTickEvent e) {
         Level world = e.level;
 
-        if (!world.isClientSide && world.getDayTime() % BreezyConfig.COMMON.windPeriodLength.get() == 0) {
-            WindDirectionSavedData.resetWindDirection(new Random());
-
+        if (!world.isClientSide && world.getGameTime() % BreezyConfig.COMMON.windPeriodLength.get() == 0) {
+            NewWindSavedData.resetWindDirections(BreezyConfig.COMMON.windPeriodLength.get(),
+                    BreezyConfig.COMMON.changePercentage.get());
             world.players().forEach(player -> {
                 Level level = player.level();
-
                 if (level.isClientSide) return;
-
-                WindDirectionSavedData data = ((ServerLevel) level).getDataStorage().computeIfAbsent(WindDirectionSavedData::new, () -> new WindDirectionSavedData(level.getRandom()), Breezy.MOD_ID + ".savedata");
+                NewWindSavedData data = ((ServerLevel) level).getDataStorage()
+                        .computeIfAbsent(NewWindSavedData::new,
+                                () -> new NewWindSavedData(((ServerLevel) level).getSeed()), Breezy.MOD_ID + ".savedata");
                 BreezyNetworking.sendToPlayer(new WindDirectionPacket(data), (ServerPlayer) player);
             });
         }
@@ -109,7 +113,8 @@ public class Breezy {
 
     public void syncWindDataOnJoinWorld(EntityJoinLevelEvent e) {
         if (e.getEntity() instanceof Player player && !e.getLevel().isClientSide) {
-            WindDirectionSavedData data = ((ServerLevel) player.level()).getDataStorage().computeIfAbsent(WindDirectionSavedData::new, () -> new WindDirectionSavedData(e.getLevel().getRandom()), Breezy.MOD_ID + ".savedata");
+            NewWindSavedData data = ((ServerLevel) player.level()).getDataStorage().computeIfAbsent(NewWindSavedData::new,
+                    () -> new NewWindSavedData(((ServerLevel) player.level()).getSeed()), Breezy.MOD_ID + ".savedata");
             BreezyNetworking.sendToPlayer(new WindDirectionPacket(data), (ServerPlayer) player);
         }
     }

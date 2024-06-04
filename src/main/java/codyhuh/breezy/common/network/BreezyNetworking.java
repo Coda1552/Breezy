@@ -1,7 +1,6 @@
-package codyhuh.breezy.core.other.networking;
+package codyhuh.breezy.common.network;
 
 import codyhuh.breezy.Breezy;
-import codyhuh.breezy.common.WindDirectionSavedData;
 import net.minecraft.client.Minecraft;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
@@ -14,7 +13,7 @@ public class BreezyNetworking {
     private static SimpleChannel INSTANCE;
     private static int packetId = 0;
     
-    public static WindDirectionSavedData CLIENT_CACHE = null;
+    public static NewWindSavedData CLIENT_CACHE = null;
     
     private static int id() {
         return packetId++;

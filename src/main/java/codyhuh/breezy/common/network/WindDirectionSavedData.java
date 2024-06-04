@@ -1,4 +1,4 @@
-package codyhuh.breezy.common;
+package codyhuh.breezy.common.network;
 
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;

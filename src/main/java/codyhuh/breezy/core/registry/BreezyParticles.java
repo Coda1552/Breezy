@@ -21,6 +21,7 @@ public class BreezyParticles {
     public static final RegistryObject<SimpleParticleType> WIND =
             PARTICLES.register("wind", () -> new SimpleParticleType(false));
 
+    @SuppressWarnings({"unused"})
     @Mod.EventBusSubscriber(modid = Breezy.MOD_ID, bus = Mod.EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
     public static class RegisterParticleFactories {
 

@@ -1,7 +1,7 @@
 package codyhuh.breezy.core.mixin;
 
 import codyhuh.breezy.common.entity.HotAirBalloonEntity;
-import codyhuh.breezy.core.other.HitBoxUtil;
+import codyhuh.breezy.core.other.util.HitBoxUtil;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.projectile.ProjectileUtil;
 import net.minecraft.world.level.Level;

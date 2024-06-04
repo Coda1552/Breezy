@@ -1,4 +1,4 @@
-package codyhuh.breezy.core.other;
+package codyhuh.breezy.core.other.util;
 
 import codyhuh.breezy.common.entity.HotAirBalloonEntity;
 import net.minecraft.world.entity.Entity;

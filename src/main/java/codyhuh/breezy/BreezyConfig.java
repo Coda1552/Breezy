@@ -8,10 +8,12 @@ import org.apache.commons.lang3.tuple.Pair;
 public class BreezyConfig {
     public static class Common {
         public final ForgeConfigSpec.ConfigValue<Integer> windPeriodLength;
+        public final ForgeConfigSpec.ConfigValue<Double> changePercentage;
 
         Common(ForgeConfigSpec.Builder builder) {
             builder.push("windpatterns");
             windPeriodLength = builder.comment("Duration in ticks for how often the wind changes\nDefault: 24000").define("wind_period_length", 24000);
+            changePercentage = builder.comment("Percent by which wind changes each duration\nDefault: 2.5%").defineInRange("wind_change_percent", 0.025, 0.0, 1.0);
             builder.pop();
         }
     }

@@ -1,24 +1,17 @@
-package codyhuh.breezy.core.other;
+package codyhuh.breezy.core.other.util;
 
 import codyhuh.breezy.BreezyConfig;
-import codyhuh.breezy.common.entity.HotAirBalloonEntity;
 import codyhuh.breezy.core.other.tags.BreezyBiomeTags;
 import codyhuh.breezy.core.registry.BreezyParticles;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
-import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.util.RandomSource;
-import net.minecraft.world.entity.projectile.Projectile;
 import net.minecraft.world.level.biome.Biome;
-import net.minecraft.world.phys.EntityHitResult;
-import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
-import static codyhuh.breezy.core.other.HitBoxUtil.*;
-
-public class MixinUtil {
+public class ClientLevelMixinUtil {
     // Hotswapping mixins my beloved
 
     @OnlyIn(Dist.CLIENT)
@@ -40,9 +33,5 @@ public class MixinUtil {
             level.addParticle(BreezyParticles.WIND.get(), (double) pos.getX() + random.nextDouble(), pos.getY() +
                     random.nextDouble(), pos.getZ() + random.nextDouble(), 0.0D, 0.0D, 0.0D);
         }
-    }
-
-    public static boolean dangerousPredicate() {
-        return false;
     }
 }

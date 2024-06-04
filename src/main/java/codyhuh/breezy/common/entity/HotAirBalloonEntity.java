@@ -1,16 +1,16 @@
 package codyhuh.breezy.common.entity;
 
 import codyhuh.breezy.BreezyConfig;
-import codyhuh.breezy.common.WindDirectionSavedData;
-import codyhuh.breezy.core.other.networking.BreezyNetworking;
+import codyhuh.breezy.common.network.NewWindSavedData;
+import codyhuh.breezy.common.network.BreezyNetworking;
 import codyhuh.breezy.core.other.tags.BreezyBiomeTags;
 import codyhuh.breezy.core.other.tags.BreezyEntityTypeTags;
 import codyhuh.breezy.core.other.tags.BreezyItemTags;
+import codyhuh.breezy.core.other.util.WindMathUtil;
 import codyhuh.breezy.core.registry.BreezyItems;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Holder;
-import net.minecraft.core.Vec3i;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.protocol.Packet;
@@ -21,28 +21,36 @@ import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
+import net.minecraft.tags.FluidTags;
 import net.minecraft.tags.ItemTags;
+import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.effect.MobEffectInstance;
+import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.*;
+import net.minecraft.world.entity.ai.attributes.AttributeInstance;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
+import net.minecraft.world.entity.animal.FlyingAnimal;
 import net.minecraft.world.entity.animal.WaterAnimal;
 import net.minecraft.world.entity.monster.Skeleton;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.vehicle.Boat;
 import net.minecraft.world.entity.vehicle.DismountHelper;
 import net.minecraft.world.item.*;
+import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.level.GameRules;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.entity.EntityTypeTest;
 import net.minecraft.world.level.gameevent.GameEvent;
+import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
+import net.minecraftforge.common.ForgeMod;
 import net.minecraftforge.common.Tags;
 import net.minecraftforge.fluids.FluidType;
 import org.jetbrains.annotations.NotNull;
@@ -55,7 +63,6 @@ import software.bernie.geckolib.util.GeckoLibUtil;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
-import java.util.function.Predicate;
 
 public class HotAirBalloonEntity extends LivingEntity implements GeoEntity {
     public static final AABB BASKET_AABB = new AABB(-0.7, 0, -0.7, 0.7, 1.0, 0.7);
@@ -265,37 +272,70 @@ public class HotAirBalloonEntity extends LivingEntity implements GeoEntity {
     @Override
     public void travel(@NotNull Vec3 lookVectorMaybe) {
         if (isAlive()) {
-            WindDirectionSavedData data = BreezyNetworking.CLIENT_CACHE;
-            Holder<Biome> holder = level().getBiome(blockPosition());
-
+            NewWindSavedData data = BreezyNetworking.CLIENT_CACHE;
             if (data != null) {
-                Direction direction = data.getWindDirection(blockPosition().getY(), level());
-                if (!onGround() && getLitness() > 0) {
-                    Vec3i normal = direction.getNormal();
-                    setDeltaMovement(getDeltaMovement().add(normal.getX(), 0, normal.getZ()).scale(0.1F));
-                }
-                if (getLitness() > 0) {
-                    setDeltaMovement(getDeltaMovement().add(0, (getLitness() + 1) * 0.02D, 0));
-                    if (onGround()) {
-                        setOnGround(false);
-                        setDeltaMovement(getDeltaMovement().add(0D, 0.02D, 0D));
-                    }
-                }
-                if (!onGround() && getLitness() == 0) {
-                    setDeltaMovement(0, -0.075D, 0);
-                }
-                if (getSandbags() > 0) {
-                    setDeltaMovement(getDeltaMovement().subtract(0, (getSandbags() + 1) * 0.02D, 0));
-                }
+                double direction = data.getWindAtHeight(blockPosition().getY(), level());
+                Vec3 currentVel = getDeltaMovement();
+                Vec3 targetVel = getTargetDirection(direction);
+                Vec3 lerpedVel = WindMathUtil.vec3Lerp(currentVel, targetVel, 0.0001F);
+                setDeltaMovement(lerpedVel);
             } else {
-                if (holder.is(BreezyBiomeTags.NO_WIND)) {
-                    setDeltaMovement(0, getDeltaMovement().y, 0);
-                } else {
-                    setDeltaMovement(0, -0.075D, 0);
-                }
+//                if (holder.is(BreezyBiomeTags.NO_WIND)) {
+//                    setDeltaMovement(0, getDeltaMovement().y, 0);
+//                } else {
+//                    setDeltaMovement(0, -0.075D, 0);
+//                }
             }
             super.travel(lookVectorMaybe);
         }
+    }
+
+    public boolean canStandOnFluid(FluidState fluidState) {
+        return fluidState.is(FluidTags.WATER);
+    }
+
+    public Vec3 getTargetDirection(double direction) {
+        Holder<Biome> holder = level().getBiome(blockPosition());
+        Vec3 wind = new Vec3(WindMathUtil.stepX(direction), 0.02, WindMathUtil.stepZ(direction)).scale(0.2F);
+
+        double uplift = 0;
+
+        if (getLitness() > 0) {
+            uplift += (getLitness() + 1) * 0.03D;
+            if (onGround()) {
+                setOnGround(false);
+            }
+        }
+        if (!onGround() && getLitness() == 0) {
+            uplift -= 0.075D;
+        }
+        if (getSandbags() > 0) {
+            uplift -= (getSandbags() + 1) * 0.02D;
+        }
+
+        double biomePenalty = 0.8;
+        double biomeBonus = 1.3;
+
+        if (holder.is(BreezyBiomeTags.NO_WIND) || isInPowderSnow || isInWaterOrBubble()) {
+            return new Vec3(0, uplift, 0);
+        } else {
+            if (holder.is(BreezyBiomeTags.LESS_WIND)) {
+                wind.scale(biomePenalty);
+                uplift *= biomePenalty;
+            } else if (holder.is(BreezyBiomeTags.MORE_WIND)) {
+                uplift *= biomeBonus;
+                wind.scale(biomeBonus);
+            }
+        }
+        return new Vec3(wind.x, uplift, wind.z);
+    }
+
+    public boolean canDrownInFluidType(FluidType type) {
+        return false;
+    }
+
+    public boolean moveInFluid(FluidState state, Vec3 movementVector, double gravity) {
+        return false;
     }
 
     @Override
@@ -336,7 +376,7 @@ public class HotAirBalloonEntity extends LivingEntity implements GeoEntity {
                 if (itemstack.is(BreezyItemTags.IGNITION_SOURCES)) {
                     setLitness(getLitness() + 2);
                     playSound(SoundEvents.FLINTANDSTEEL_USE, 1.0F, 1.0F);
-                    Vec3 origin = boxInLevel(BALLOON_AABB).getCenter().subtract(0, 1.85,0);
+                    Vec3 origin = boxInLevel(BALLOON_AABB).getCenter().subtract(0, 1.85, 0);
                     for (int i = 0; i < 5; i++) {
                         level().addParticle(ParticleTypes.LAVA, origin.x, origin.y, origin.z, 0, 0, 0);
                     }

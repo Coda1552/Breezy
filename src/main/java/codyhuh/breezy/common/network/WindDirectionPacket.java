@@ -1,6 +1,6 @@
-package codyhuh.breezy.core.other.networking;
+package codyhuh.breezy.common.network;
 
-import codyhuh.breezy.common.WindDirectionSavedData;
+import net.minecraft.client.Minecraft;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraftforge.network.NetworkEvent;
@@ -9,14 +9,14 @@ import java.util.function.Supplier;
 
 public class WindDirectionPacket {
 	
-	private final WindDirectionSavedData data;
+	private final NewWindSavedData data;
 	
-	public WindDirectionPacket(WindDirectionSavedData data) {
+	public WindDirectionPacket(NewWindSavedData data) {
 		this.data = data;
 	}
 	
 	public WindDirectionPacket(FriendlyByteBuf buf) {
-		data = new WindDirectionSavedData(buf.readAnySizeNbt());
+		data = new NewWindSavedData(buf.readAnySizeNbt());
 	}
 	
 	public void write(FriendlyByteBuf buf) {
@@ -24,6 +24,7 @@ public class WindDirectionPacket {
 	}
 	
 	public boolean handle(Supplier<NetworkEvent.Context> ctx) {
+		// access to ClientLevel is directly exposed *here*
 		BreezyNetworking.CLIENT_CACHE = data;
 		return true;
 	}
