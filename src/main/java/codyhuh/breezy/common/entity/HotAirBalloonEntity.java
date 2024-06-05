@@ -416,14 +416,17 @@ public class HotAirBalloonEntity extends LivingEntity implements GeoEntity {
             }
         }
         if (basket) {
-            if (getSandbags() < 8 && player.getItemInHand(hand).is(ItemTags.SAND)) {
-                setSandbags(getSandbags() + 1);
-                playSound(SoundEvents.SAND_PLACE, 1.0F, 1.5F);
-                if (!player.isCreative()) {
-                    itemstack.shrink(1);
+            if (player.getItemInHand(hand).is(ItemTags.SAND)) {
+                if (getSandbags() < 8) {
+                    setSandbags(getSandbags() + 1);
+                    playSound(SoundEvents.SAND_PLACE, 1.0F, 1.5F);
+                    if (!player.isCreative()) {
+                        itemstack.shrink(1);
+                    }
+                    return InteractionResult.SUCCESS;
+                } else {
+                    return InteractionResult.CONSUME;
                 }
-
-                return InteractionResult.SUCCESS;
             }
             if (getSandbags() > 0 && player.getItemInHand(hand).is(Tags.Items.SHEARS)) {
                 setSandbags(getSandbags() - 1);
