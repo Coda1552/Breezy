@@ -11,7 +11,7 @@ import net.minecraft.world.level.saveddata.SavedData;
 import java.util.Random;
 
 public class NewWindSavedData extends SavedData {
-    private static final int LAYERS = 24;
+    private static final int LAYERS = 12;
     private static final double[] windDirections = new double[LAYERS];
 
     public NewWindSavedData(long seed) {
@@ -50,6 +50,10 @@ public class NewWindSavedData extends SavedData {
 
     public double getWindAtHeight(int height, Level level) {
         return windDirections[normalize(height, level)];
+    }
+
+    public int getLayer(int yValue, Level level) {
+        return normalize(yValue, level);
     }
 
     public double[] getWindDirections() {

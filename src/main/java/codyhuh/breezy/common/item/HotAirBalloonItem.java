@@ -16,6 +16,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
@@ -59,7 +60,10 @@ public class HotAirBalloonItem extends Item implements DyeableLeatherItem {
             entity.moveTo(blockpos1.getX() + 0.5, blockpos1.getY(), blockpos1.getZ() + 0.5, Objects.requireNonNull(context.getPlayer()).yRotO, 0f);
             int color = getColor(itemstack);
             entity.setColor(color);
-
+            entity.setDeltaMovement(Vec3.ZERO);
+            if (context.getClickedFace() == Direction.UP) {
+                entity.setOnGround(true);
+            }
             if (context.getLevel().addFreshEntity(entity) && !context.getPlayer().isCreative()) {
                 itemstack.shrink(1);
             }

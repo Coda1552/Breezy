@@ -33,8 +33,11 @@ import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.ai.attributes.AttributeInstance;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
+import net.minecraft.world.entity.animal.Cat;
 import net.minecraft.world.entity.animal.FlyingAnimal;
 import net.minecraft.world.entity.animal.WaterAnimal;
+import net.minecraft.world.entity.animal.Wolf;
+import net.minecraft.world.entity.decoration.ArmorStand;
 import net.minecraft.world.entity.monster.Skeleton;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.vehicle.Boat;
@@ -176,16 +179,24 @@ public class HotAirBalloonEntity extends LivingEntity implements GeoEntity {
 //            peterPanParticles((ServerLevel) this.level(), BALLOON_AABB);
 //        }
         if (tickCount % 10 == 0 && random.nextBoolean() && !this.getPassengers().isEmpty()) {
-            Entity entity = this.getPassengers().get(0);
-            if (entity.getType().is(BreezyEntityTypeTags.HOT_ONES) && getLitness() != 3) {
-                setLitness(3);
-            } else if (entity.isOnFire() && getLitness() < 2) {
-                setLitness(getLitness() + 1);
+            Entity entity = this.getFirstPassenger();
+            if (entity != null) {
+                if (entity.getType().is(BreezyEntityTypeTags.HOT_ONES) && getLitness() != 3) {
+                    setLitness(3);
+                } else if (entity.isOnFire() && getLitness() < 2) {
+                    setLitness(getLitness() + 1);
+                }
             }
         }
 
-        if (getLitness() > 0 && tickCount % (getLitness() * 40) == 0 && random.nextBoolean()) {
-            setLitness(getLitness() - 1);
+        if (getLitness() > 0) {
+            if (tickCount % (getLitness() * 40) == 0 && random.nextBoolean()) {
+                setLitness(getLitness() - 1);
+            }
+            if (random.nextInt(8) == 0 && level() instanceof ServerLevel server) {
+                Vec3 origin = boxInLevel(BALLOON_AABB).getCenter().subtract(0, 1.5, 0);
+                server.sendParticles(ParticleTypes.SMALL_FLAME, origin.x, origin.y, origin.z, 1, 0, 0, 0, 0);
+            }
         }
 
         if (isInWaterOrRain()) {
@@ -206,7 +217,7 @@ public class HotAirBalloonEntity extends LivingEntity implements GeoEntity {
 
             for (Entity entity : list) {
                 if (!entity.hasPassenger(this)) {
-                    AABB validBasket = BASKET_AABB.inflate(-0.2, 0.85, -0.2);
+                    AABB validBasket = BASKET_AABB.inflate(-0.2, 0.72, -0.2);
                     if (flag && this.getPassengers().isEmpty() && !entity.isPassenger() &&
                             entity.getBbWidth() < validBasket.getXsize() && entity instanceof LivingEntity &&
                             !(entity instanceof WaterAnimal) && !(entity instanceof Player)
@@ -256,7 +267,6 @@ public class HotAirBalloonEntity extends LivingEntity implements GeoEntity {
                         this.hurt(this.damageSources().cramming(), 6.0F);
                     }
                 }
-
                 for (Entity entity : list) {
                     this.doPush(entity);
                 }
@@ -269,22 +279,18 @@ public class HotAirBalloonEntity extends LivingEntity implements GeoEntity {
         this.hasImpulse = true;
     }
 
+    protected float tickHeadTurn(float p_21260_, float p_21261_) {
+        return p_21261_;
+    }
+
     @Override
     public void travel(@NotNull Vec3 lookVectorMaybe) {
         if (isAlive()) {
             NewWindSavedData data = BreezyNetworking.CLIENT_CACHE;
             if (data != null) {
-                double direction = data.getWindAtHeight(blockPosition().getY(), level());
-                Vec3 currentVel = getDeltaMovement();
-                Vec3 targetVel = getTargetDirection(direction);
-                Vec3 lerpedVel = WindMathUtil.vec3Lerp(currentVel, targetVel, 0.0001F);
+                Vec3 targetVel = getTargetDirection(data);
+                Vec3 lerpedVel = WindMathUtil.vec3Lerp(getDeltaMovement(), targetVel, 0.1F);
                 setDeltaMovement(lerpedVel);
-            } else {
-//                if (holder.is(BreezyBiomeTags.NO_WIND)) {
-//                    setDeltaMovement(0, getDeltaMovement().y, 0);
-//                } else {
-//                    setDeltaMovement(0, -0.075D, 0);
-//                }
             }
             super.travel(lookVectorMaybe);
         }
@@ -294,39 +300,52 @@ public class HotAirBalloonEntity extends LivingEntity implements GeoEntity {
         return fluidState.is(FluidTags.WATER);
     }
 
-    public Vec3 getTargetDirection(double direction) {
+    public Vec3 getTargetDirection(NewWindSavedData data) {
+        double direction = data.getWindAtHeight(blockPosition().getY(), level());
         Holder<Biome> holder = level().getBiome(blockPosition());
-        Vec3 wind = new Vec3(WindMathUtil.stepX(direction), 0.02, WindMathUtil.stepZ(direction)).scale(0.2F);
-
+        int litness = getLitness();
+        Vec3 wind = new Vec3(WindMathUtil.stepX(direction), 0.0, WindMathUtil.stepZ(direction)).scale(0.3F);
         double uplift = 0;
 
-        if (getLitness() > 0) {
-            uplift += (getLitness() + 1) * 0.03D;
+        if (litness > 0) {
+            uplift += (litness + 1) * 0.03D;
             if (onGround()) {
                 setOnGround(false);
             }
         }
-        if (!onGround() && getLitness() == 0) {
-            uplift -= 0.075D;
+        if (isInPowderSnow || isInWaterOrBubble()) {
+            return new Vec3(0, -0.075, 0);
         }
+        if (litness == 0) {
+            wind.scale(0.5);
+            if (onGround()) {
+                return new Vec3(0, -0.075, 0);
+            } else {
+                uplift -= 0.075D;
+            }
+        }
+        if (!level().canSeeSky(blockPosition())) wind.scale(0.8);
         if (getSandbags() > 0) {
             uplift -= (getSandbags() + 1) * 0.02D;
+        }
+        if (getY() >= level().getMaxBuildHeight()) {
+            uplift = 0;
         }
 
         double biomePenalty = 0.8;
         double biomeBonus = 1.3;
-
-        if (holder.is(BreezyBiomeTags.NO_WIND) || isInPowderSnow || isInWaterOrBubble()) {
+        wind.add(0, uplift, 0);
+        if (holder.is(BreezyBiomeTags.NO_WIND)) {
             return new Vec3(0, uplift, 0);
         } else {
             if (holder.is(BreezyBiomeTags.LESS_WIND)) {
                 wind.scale(biomePenalty);
-                uplift *= biomePenalty;
             } else if (holder.is(BreezyBiomeTags.MORE_WIND)) {
-                uplift *= biomeBonus;
                 wind.scale(biomeBonus);
             }
         }
+        double altitudeBonus = (data.getLayer(blockPosition().getY(), level()) * .05);
+        wind.add(altitudeBonus, 0, altitudeBonus);
         return new Vec3(wind.x, uplift, wind.z);
     }
 
@@ -531,6 +550,10 @@ public class HotAirBalloonEntity extends LivingEntity implements GeoEntity {
         return (p_38325_.canBeCollidedWith() || p_38325_.isPushable()) && !p_38324_.isPassengerOfSameVehicle(p_38325_);
     }
 
+    public boolean isPushable() {
+        return getPassengers().isEmpty();
+    }
+
     @Override
     public HumanoidArm getMainArm() {
         return null;
@@ -601,7 +624,7 @@ public class HotAirBalloonEntity extends LivingEntity implements GeoEntity {
         if (!this.getPassengers().isEmpty() && this.getPassengers().get(0) instanceof Skeleton) {
             return 0.65;
         }
-        return 0.38D;
+        return 0.5D;
     }
 
     @Override
@@ -630,6 +653,10 @@ public class HotAirBalloonEntity extends LivingEntity implements GeoEntity {
     }
 
     public boolean startRiding(Entity p_19966_, boolean p_19967_) {
+        return false;
+    }
+
+    public boolean showVehicleHealth() {
         return false;
     }
 
