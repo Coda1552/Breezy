@@ -182,17 +182,28 @@ public class HotAirBalloonEntity extends LivingEntity implements GeoEntity {
         }
 
         if (getLitness() > 0) {
-            if (tickCount % (getLitness() * 60) == 0 && random.nextBoolean()) {
+            if (tickCount % (getLitness() * 80) == 0 && random.nextBoolean()) {
                 setLitness(getLitness() - 1);
             }
             if (random.nextInt(8) == 0 && level() instanceof ServerLevel server) {
-                Vec3 origin = boxInLevel(BALLOON_AABB).getCenter().subtract(0, 1.5, 0);
-                server.sendParticles(ParticleTypes.LAVA, origin.x, origin.y, origin.z, 1, 0, 0, 0, 0);
+//                Vec3 origin = boxInLevel(BALLOON_AABB).getCenter().subtract(0, 1.5, 0);
+//                server.sendParticles(ParticleTypes.LAVA, origin.x, origin.y, origin.z, 1, 0, 0, 0, 0);
             }
         }
 
         if (isInWaterOrRain()) {
-            setLitness(0);
+            Holder<Biome> holder = level().getBiome(blockPosition());
+            if (holder.get().warmEnoughToRain(blockPosition()) && level().canSeeSky(blockPosition()) && !onGround()
+            && level().isThundering() && random.nextInt(100) == 0 && level() instanceof ServerLevel server) {
+                LightningBolt lightningbolt = EntityType.LIGHTNING_BOLT.create(level());
+                if (lightningbolt != null) {
+                    lightningbolt.moveTo(Vec3.atBottomCenterOf(blockPosition().above()));
+                    server.addFreshEntity(lightningbolt);
+                }
+            }
+            if (random.nextInt(20) == 0) {
+                setLitness(getLitness() - 1);
+            }
         }
 
         if (this.getHurtTime() > 0) {
@@ -580,7 +591,7 @@ public class HotAirBalloonEntity extends LivingEntity implements GeoEntity {
     }
 
     public void setLitness(int litness) {
-        this.entityData.set(LITNESS, litness);
+        this.entityData.set(LITNESS, Math.max(0, litness));
     }
 
     public int getLitness() {
@@ -652,6 +663,10 @@ public class HotAirBalloonEntity extends LivingEntity implements GeoEntity {
     }
 
     public boolean shouldShowName() {
+        return false;
+    }
+
+    public boolean showVehicleHealth() {
         return false;
     }
 
