@@ -336,8 +336,8 @@ public class HotAirBalloonEntity extends LivingEntity implements GeoEntity {
             uplift = 0;
         }
 
-        double biomePenalty = 0.7;
-        double biomeBonus = 1.6;
+        double biomePenalty = BreezyConfig.COMMON.lowWindBiomeSpeedPenalty.get();
+        double biomeBonus = BreezyConfig.COMMON.highWindBiomeSpeedBonus.get();
         wind.add(0, uplift, 0);
         if (holder.is(BreezyBiomeTags.NO_WIND)) {
             return new Vec3(0, uplift, 0);
@@ -348,7 +348,7 @@ public class HotAirBalloonEntity extends LivingEntity implements GeoEntity {
                 wind.scale(biomeBonus);
             }
         }
-        double altitudeBonus = (data.getLayer(blockPosition().getY(), level()) * .1);
+        double altitudeBonus = (data.getLayer(blockPosition().getY(), level()) * BreezyConfig.COMMON.altitudeMultiplier.get());
         wind.add(altitudeBonus, 0, altitudeBonus);
         return new Vec3(wind.x, uplift, wind.z);
     }

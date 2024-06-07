@@ -9,11 +9,19 @@ public class BreezyConfig {
     public static class Common {
         public final ForgeConfigSpec.ConfigValue<Integer> windPeriodLength;
         public final ForgeConfigSpec.ConfigValue<Double> changePercentage;
+        public final ForgeConfigSpec.ConfigValue<Double> lowWindBiomeSpeedPenalty;
+        public final ForgeConfigSpec.ConfigValue<Double> highWindBiomeSpeedBonus;
+        public final ForgeConfigSpec.ConfigValue<Double> altitudeMultiplier;
 
         Common(ForgeConfigSpec.Builder builder) {
-            builder.push("windpatterns");
+            builder.push("wind patterns");
             windPeriodLength = builder.comment("Duration in ticks for how often the wind changes\nDefault: 24000").define("wind_period_length", 24000);
             changePercentage = builder.comment("Percent by which wind changes each duration\nDefault: 2.5%").defineInRange("wind_change_percent", 0.025, 0.0, 1.0);
+            builder.push("speed modifiers");
+            lowWindBiomeSpeedPenalty = builder.comment("Speed modifier for biomes with less wind\nDefault: 0.7").define("low_wind_modifier", 0.7);
+            highWindBiomeSpeedBonus = builder.comment("Speed modifier for biomes with more wind\nDefault: 1.6").define("high_wind_modifier", 1.6);
+            altitudeMultiplier = builder.comment("Speed modifier added for each higher atmospheric layer\nDefault: 0.1").define("altitude_bonus", 0.1);
+            builder.pop();
             builder.pop();
         }
     }
