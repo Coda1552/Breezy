@@ -14,9 +14,9 @@ public class WindMathUtil {
 
     public static Vec3 vec3Lerp(Vec3 start, Vec3 end, float t) {
         return new Vec3(
-                Mth.lerp(t * 3, start.x, end.x),
-                Mth.lerp(t * 15, start.y, end.y),
-                Mth.lerp(t * 3, start.z, end.z)
+                Mth.lerp(t * 4, start.x, end.x),
+                Mth.lerp(t * 18, start.y, end.y),
+                Mth.lerp(t * 4, start.z, end.z)
         );
     }
 }

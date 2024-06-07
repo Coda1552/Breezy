@@ -73,7 +73,7 @@ public class ClientEvents {
 
                         d1 = Mth.positiveModulo(d1 / 360.0D, 1.0D);
                         double d2 = this.getAngleTo(new Vec3(WindMathUtil.stepX(direction),
-                                0.0, WindMathUtil.stepZ(direction)).scale(250), entity) / ((float)Math.PI * 2F);
+                                0.0, WindMathUtil.stepZ(direction)).scale(Double.MAX_VALUE), entity) / ((float)Math.PI * 2F);
                         double d3;
                         if (flag) {
                             if (this.wobble.shouldUpdate(i)) {

@@ -185,10 +185,10 @@ public class HotAirBalloonEntity extends LivingEntity implements GeoEntity {
             if (tickCount % (getLitness() * 80) == 0 && random.nextBoolean()) {
                 setLitness(getLitness() - 1);
             }
-            if (random.nextInt(8) == 0 && level() instanceof ServerLevel server) {
+//            if (random.nextInt(8) == 0 && level() instanceof ServerLevel server) {
 //                Vec3 origin = boxInLevel(BALLOON_AABB).getCenter().subtract(0, 1.5, 0);
 //                server.sendParticles(ParticleTypes.LAVA, origin.x, origin.y, origin.z, 1, 0, 0, 0, 0);
-            }
+//            }
         }
 
         if (isInWaterOrRain()) {
@@ -292,7 +292,7 @@ public class HotAirBalloonEntity extends LivingEntity implements GeoEntity {
             NewWindSavedData data = BreezyNetworking.CLIENT_CACHE;
             if (data != null) {
                 Vec3 targetVel = getTargetDirection(data);
-                Vec3 lerpedVel = WindMathUtil.vec3Lerp(getDeltaMovement(), targetVel, 0.05F);
+                Vec3 lerpedVel = WindMathUtil.vec3Lerp(getDeltaMovement(), targetVel, 0.06F);
                 setDeltaMovement(lerpedVel);
             }
             super.travel(lookVectorMaybe);
@@ -307,7 +307,7 @@ public class HotAirBalloonEntity extends LivingEntity implements GeoEntity {
         double direction = data.getWindAtHeight(blockPosition().getY(), level());
         Holder<Biome> holder = level().getBiome(blockPosition());
         int litness = getLitness();
-        Vec3 wind = new Vec3(WindMathUtil.stepX(direction), 0.0, WindMathUtil.stepZ(direction)).scale(0.3F);
+        Vec3 wind = new Vec3(WindMathUtil.stepX(direction), 0.0, WindMathUtil.stepZ(direction)).scale(0.4F);
         double uplift = 0;
 
         if (litness > 0) {

@@ -20,7 +20,7 @@ public class NewWindSavedData extends SavedData {
         for (int i = 1; i < LAYERS; i++) {
             double prevDir = windDirections[i - 1];
             double minDelta = 60;
-            double maxDelta = 180;
+            double maxDelta = 120;
             double dirDelta = minDelta + ((maxDelta - minDelta) * random.nextDouble());
             if (random.nextBoolean()) {
                 windDirections[i] = (prevDir + dirDelta) % 360;
