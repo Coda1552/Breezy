@@ -8,6 +8,7 @@ import codyhuh.breezy.core.other.tags.BreezyEntityTypeTags;
 import codyhuh.breezy.core.other.tags.BreezyItemTags;
 import codyhuh.breezy.core.other.util.WindMathUtil;
 import codyhuh.breezy.core.registry.BreezyItems;
+import net.minecraft.client.renderer.item.CompassItemPropertyFunction;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Holder;
@@ -328,7 +329,7 @@ public class HotAirBalloonEntity extends LivingEntity implements GeoEntity {
         if (getSandbags() > 0) {
             uplift -= (getSandbags() + 1) * 0.02D;
         }
-        if (getY() >= level().getMaxBuildHeight()) {
+        if (getY() >= level().getMaxBuildHeight() - 12) {
             uplift = 0;
         }
 

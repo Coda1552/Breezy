@@ -2,8 +2,10 @@ package codyhuh.breezy.client;
 
 import codyhuh.breezy.Breezy;
 import codyhuh.breezy.client.render.HotAirBalloonRenderer;
+import codyhuh.breezy.common.network.NewWindSavedData;
 import codyhuh.breezy.common.network.WindDirectionSavedData;
 import codyhuh.breezy.common.network.BreezyNetworking;
+import codyhuh.breezy.core.other.util.WindMathUtil;
 import codyhuh.breezy.core.registry.BreezyEntities;
 import codyhuh.breezy.core.registry.BreezyItems;
 import net.minecraft.client.multiplayer.ClientLevel;
@@ -41,77 +43,76 @@ public class ClientEvents {
 
     @SubscribeEvent
     public static void registerClient(final FMLClientSetupEvent e) {
-//        ItemProperties.register(BreezyItems.GUST_GAUGE.get(), new ResourceLocation("angle"), new ClampedItemPropertyFunction() {
-//            private final CompassWobble wobble = new CompassWobble();
-//            private final CompassWobble wobbleRandom = new CompassWobble();
-//
-//            public float unclampedCall(ItemStack stack, @Nullable ClientLevel clientLevel, @Nullable LivingEntity livingEntity, int p_174675_) {
-//                Entity entity = livingEntity != null ? livingEntity : stack.getEntityRepresentation();
-//                if (entity == null) {
-//                    return 0.0F;
-//                } else {
-//                    if (clientLevel == null && entity.level() instanceof ClientLevel) {
-//                        clientLevel = (ClientLevel)entity.level();
-//                    }
-//
-//                    WindDirectionSavedData data = BreezyNetworking.CLIENT_CACHE;
-//
-//                    Direction dir = data.getWindDirection(entity.blockPosition().getY(), entity.level());
-//
-//                    long i = clientLevel != null ? clientLevel.getGameTime() : 0;
-//                    if (dir != null) {
-//                        boolean flag = livingEntity instanceof Player player && player.isLocalPlayer();
-//                        double d1 = 0.0D;
-//                        if (flag) {
-//                            d1 = livingEntity.getYRot();
-//                        } else if (entity instanceof ItemFrame) {
-//                            d1 = this.getFrameRotation((ItemFrame)entity);
-//                        } else if (entity instanceof ItemEntity) {
-//                            d1 = 180.0F - ((ItemEntity)entity).getSpin(0.5F) / ((float)Math.PI * 2F) * 360.0F;
-//                        } else if (livingEntity != null) {
-//                            d1 = livingEntity.yBodyRot;
-//                        }
-//
-//                        d1 = Mth.positiveModulo(d1 / 360.0D, 1.0D);
-//                        Vec3i norm = entity.blockPosition().offset(dir.getNormal().multiply(100));
-//                        double d2 = this.getAngleTo(new Vec3(norm.getX(), norm.getY(), norm.getZ()), entity) / ((float)Math.PI * 2F);
-//                        double d3;
-//                        if (flag) {
-//                            if (this.wobble.shouldUpdate(i)) {
-//                                this.wobble.update(i, 0.5D - (d1 - 0.25D));
-//                            }
-//
-//                            d3 = d2 + this.wobble.rotation;
-//                        } else {
-//                            d3 = 0.5D - (d1 - 0.25D - d2);
-//                        }
-//
-//                        return Mth.positiveModulo((float)d3, 1.0F);
-//                    } else {
-//                        if (this.wobbleRandom.shouldUpdate(i)) {
-//                            this.wobbleRandom.update(i, Math.random());
-//                        }
-//
-//                        double d0 = this.wobbleRandom.rotation + (double)((float)this.hash(p_174675_) / 2.14748365E9F);
-//                        return Mth.positiveModulo((float)d0, 1.0F);
-//                    }
-//                }
-//            }
-//
-//            private int hash(int p_174670_) {
-//                return p_174670_ * 1327217883;
-//            }
-//
-//            private double getFrameRotation(ItemFrame p_117914_) {
-//                Direction direction = p_117914_.getDirection();
-//                int i = direction.getAxis().isVertical() ? 90 * direction.getAxisDirection().getStep() : 0;
-//                return Mth.wrapDegrees(180 + direction.get2DDataValue() * 90 + p_117914_.getRotation() * 45 + i);
-//            }
-//
-//            private double getAngleTo(Vec3 p_117919_, Entity p_117920_) {
-//                return Math.atan2(p_117919_.z() - p_117920_.getZ(), p_117919_.x() - p_117920_.getX());
-//            }
-//        });
+        ItemProperties.register(BreezyItems.GUST_GAUGE.get(), new ResourceLocation("angle"), new ClampedItemPropertyFunction() {
+            private final CompassWobble wobble = new CompassWobble();
+            private final CompassWobble wobbleRandom = new CompassWobble();
+
+            public float unclampedCall(ItemStack stack, @Nullable ClientLevel clientLevel, @Nullable LivingEntity livingEntity, int p_174675_) {
+                Entity entity = livingEntity != null ? livingEntity : stack.getEntityRepresentation();
+                if (entity == null) {
+                    return 0.0F;
+                } else {
+                    if (clientLevel == null && entity.level() instanceof ClientLevel) {
+                        clientLevel = (ClientLevel)entity.level();
+                    }
+
+                    NewWindSavedData data = BreezyNetworking.CLIENT_CACHE;
+
+                    long i = clientLevel != null ? clientLevel.getGameTime() : 0;
+                    if (data != null) {
+                        double direction = data.getWindAtHeight(entity.blockPosition().getY(), entity.level());
+                        boolean flag = livingEntity instanceof Player player && player.isLocalPlayer();
+                        double d1 = 0.0D;
+                        if (flag) {
+                            d1 = livingEntity.getYRot();
+                        } else if (entity instanceof ItemFrame) {
+                            d1 = this.getFrameRotation((ItemFrame)entity);
+                        } else if (entity instanceof ItemEntity) {
+                            d1 = 180.0F - ((ItemEntity)entity).getSpin(0.5F) / ((float)Math.PI * 2F) * 360.0F;
+                        } else if (livingEntity != null) {
+                            d1 = livingEntity.yBodyRot;
+                        }
+
+                        d1 = Mth.positiveModulo(d1 / 360.0D, 1.0D);
+                        double d2 = this.getAngleTo(new Vec3(WindMathUtil.stepX(direction),
+                                0.0, WindMathUtil.stepZ(direction)).scale(250), entity) / ((float)Math.PI * 2F);
+                        double d3;
+                        if (flag) {
+                            if (this.wobble.shouldUpdate(i)) {
+                                this.wobble.update(i, 0.5D - (d1 - 0.25D));
+                            }
+
+                            d3 = d2 + this.wobble.rotation;
+                        } else {
+                            d3 = 0.5D - (d1 - 0.25D - d2);
+                        }
+
+                        return Mth.positiveModulo((float)d3, 1.0F);
+                    } else {
+                        if (this.wobbleRandom.shouldUpdate(i)) {
+                            this.wobbleRandom.update(i, Math.random());
+                        }
+
+                        double d0 = this.wobbleRandom.rotation + (double)((float)this.hash(p_174675_) / 2.14748365E9F);
+                        return Mth.positiveModulo((float)d0, 1.0F);
+                    }
+                }
+            }
+
+            private int hash(int p_174670_) {
+                return p_174670_ * 1327217883;
+            }
+
+            private double getFrameRotation(ItemFrame p_117914_) {
+                Direction direction = p_117914_.getDirection();
+                int i = direction.getAxis().isVertical() ? 90 * direction.getAxisDirection().getStep() : 0;
+                return Mth.wrapDegrees(180 + direction.get2DDataValue() * 90 + p_117914_.getRotation() * 45 + i);
+            }
+
+            private double getAngleTo(Vec3 p_117919_, Entity p_117920_) {
+                return Math.atan2(p_117919_.z() - p_117920_.getZ(), p_117919_.x() - p_117920_.getX());
+            }
+        });
     }
 
     private static class CompassWobble {
