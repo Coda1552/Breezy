@@ -40,6 +40,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.GameRules;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.biome.Biome;
+import net.minecraft.world.level.block.TorchBlock;
 import net.minecraft.world.level.entity.EntityTypeTest;
 import net.minecraft.world.level.gameevent.GameEvent;
 import net.minecraft.world.level.material.FluidState;
@@ -185,10 +186,10 @@ public class HotAirBalloonEntity extends LivingEntity implements GeoEntity {
             if (tickCount % (getLitness() * 80) == 0 && random.nextBoolean()) {
                 setLitness(getLitness() - 1);
             }
-//            if (random.nextInt(8) == 0 && level() instanceof ServerLevel server) {
-//                Vec3 origin = boxInLevel(BALLOON_AABB).getCenter().subtract(0, 1.5, 0);
-//                server.sendParticles(ParticleTypes.LAVA, origin.x, origin.y, origin.z, 1, 0, 0, 0, 0);
-//            }
+            if (random.nextInt(8) == 0 && level() instanceof ServerLevel server) {
+                Vec3 origin = boxInLevel(BALLOON_AABB).getCenter().subtract(0, 1.5, 0);
+                server.sendParticles(ParticleTypes.SMOKE, origin.x, origin.y, origin.z, 1, 0, 0, 0, 0);
+            }
         }
 
         if (isInWaterOrRain()) {
@@ -327,7 +328,7 @@ public class HotAirBalloonEntity extends LivingEntity implements GeoEntity {
                 uplift -= 0.075D;
             }
         }
-        if (!level().canSeeSky(blockPosition())) wind.scale(0.8);
+        if (!level().canSeeSky(blockPosition())) wind.scale(0.4);
         if (getSandbags() > 0) {
             uplift -= (getSandbags() + 1) * 0.02D;
         }
@@ -335,8 +336,8 @@ public class HotAirBalloonEntity extends LivingEntity implements GeoEntity {
             uplift = 0;
         }
 
-        double biomePenalty = 0.8;
-        double biomeBonus = 1.3;
+        double biomePenalty = 0.7;
+        double biomeBonus = 1.6;
         wind.add(0, uplift, 0);
         if (holder.is(BreezyBiomeTags.NO_WIND)) {
             return new Vec3(0, uplift, 0);
@@ -347,7 +348,7 @@ public class HotAirBalloonEntity extends LivingEntity implements GeoEntity {
                 wind.scale(biomeBonus);
             }
         }
-        double altitudeBonus = (data.getLayer(blockPosition().getY(), level()) * .05);
+        double altitudeBonus = (data.getLayer(blockPosition().getY(), level()) * .1);
         wind.add(altitudeBonus, 0, altitudeBonus);
         return new Vec3(wind.x, uplift, wind.z);
     }
