@@ -1,14 +1,13 @@
 package codyhuh.breezy.common.entity;
 
 import codyhuh.breezy.BreezyConfig;
-import codyhuh.breezy.common.network.NewWindSavedData;
 import codyhuh.breezy.common.network.BreezyNetworking;
+import codyhuh.breezy.common.network.NewWindSavedData;
 import codyhuh.breezy.core.other.tags.BreezyBiomeTags;
 import codyhuh.breezy.core.other.tags.BreezyEntityTypeTags;
 import codyhuh.breezy.core.other.tags.BreezyItemTags;
 import codyhuh.breezy.core.other.util.WindMathUtil;
 import codyhuh.breezy.core.registry.BreezyItems;
-import net.minecraft.client.renderer.item.CompassItemPropertyFunction;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Holder;
@@ -24,27 +23,20 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.tags.FluidTags;
 import net.minecraft.tags.ItemTags;
-import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.effect.MobEffectInstance;
-import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.*;
-import net.minecraft.world.entity.ai.attributes.AttributeInstance;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
-import net.minecraft.world.entity.animal.Cat;
-import net.minecraft.world.entity.animal.FlyingAnimal;
 import net.minecraft.world.entity.animal.WaterAnimal;
-import net.minecraft.world.entity.animal.Wolf;
-import net.minecraft.world.entity.decoration.ArmorStand;
 import net.minecraft.world.entity.monster.Skeleton;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.entity.vehicle.Boat;
 import net.minecraft.world.entity.vehicle.DismountHelper;
-import net.minecraft.world.item.*;
-import net.minecraft.world.item.enchantment.EnchantmentHelper;
+import net.minecraft.world.item.DyeItem;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.GameRules;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.biome.Biome;
@@ -54,7 +46,6 @@ import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.common.ForgeMod;
 import net.minecraftforge.common.Tags;
 import net.minecraftforge.fluids.FluidType;
 import org.jetbrains.annotations.NotNull;
@@ -191,12 +182,12 @@ public class HotAirBalloonEntity extends LivingEntity implements GeoEntity {
         }
 
         if (getLitness() > 0) {
-            if (tickCount % (getLitness() * 40) == 0 && random.nextBoolean()) {
+            if (tickCount % (getLitness() * 60) == 0 && random.nextBoolean()) {
                 setLitness(getLitness() - 1);
             }
             if (random.nextInt(8) == 0 && level() instanceof ServerLevel server) {
                 Vec3 origin = boxInLevel(BALLOON_AABB).getCenter().subtract(0, 1.5, 0);
-                server.sendParticles(ParticleTypes.SMALL_FLAME, origin.x, origin.y, origin.z, 1, 0, 0, 0, 0);
+                server.sendParticles(ParticleTypes.LAVA, origin.x, origin.y, origin.z, 1, 0, 0, 0, 0);
             }
         }
 
@@ -290,7 +281,7 @@ public class HotAirBalloonEntity extends LivingEntity implements GeoEntity {
             NewWindSavedData data = BreezyNetworking.CLIENT_CACHE;
             if (data != null) {
                 Vec3 targetVel = getTargetDirection(data);
-                Vec3 lerpedVel = WindMathUtil.vec3Lerp(getDeltaMovement(), targetVel, 0.1F);
+                Vec3 lerpedVel = WindMathUtil.vec3Lerp(getDeltaMovement(), targetVel, 0.05F);
                 setDeltaMovement(lerpedVel);
             }
             super.travel(lookVectorMaybe);
@@ -660,7 +651,7 @@ public class HotAirBalloonEntity extends LivingEntity implements GeoEntity {
         return false;
     }
 
-    public boolean showVehicleHealth() {
+    public boolean shouldShowName() {
         return false;
     }
 

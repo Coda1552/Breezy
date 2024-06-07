@@ -11,17 +11,17 @@ import net.minecraft.world.level.saveddata.SavedData;
 
 import java.util.Random;
 
-public class WindDirectionSavedData extends SavedData {
+public class LegacyWindDirectionSavedData extends SavedData {
     private static final int INTERVAL = 24;
     private static final Direction[] directions = new Direction[INTERVAL];
 
-    public WindDirectionSavedData(RandomSource random) {
+    public LegacyWindDirectionSavedData(RandomSource random) {
         for (int i = 0; i < INTERVAL; ++i) {
             directions[i] = Direction.from2DDataValue(random.nextInt(4));
         }
     }
 
-    public WindDirectionSavedData(CompoundTag tag) {
+    public LegacyWindDirectionSavedData(CompoundTag tag) {
         ListTag listTag = tag.getList("Directions", Tag.TAG_INT);
 
         for (int i = 0; i < listTag.size(); i++) {

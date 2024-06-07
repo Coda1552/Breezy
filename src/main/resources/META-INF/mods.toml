@@ -29,3 +29,10 @@ mandatory = true
 versionRange = "[47.2,)"
 ordering = "NONE"
 side = "BOTH"
+
+[[dependencies.breezy]]
+modId = "geckolib"
+mandatory = true
+versionRange = "[4.4.4,)"
+ordering = "NONE"
+side = "BOTH"

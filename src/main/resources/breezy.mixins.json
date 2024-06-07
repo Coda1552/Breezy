@@ -8,6 +8,7 @@
     "MobEffectMixin",
     "MobMixin",
     "NameTagItemMixin",
+    "EntityMixin",
     "ProjectileUtilMixin"
   ],
   "client": [
