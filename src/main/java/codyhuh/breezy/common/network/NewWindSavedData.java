@@ -60,8 +60,8 @@ public class NewWindSavedData extends SavedData {
     }
 
     private int normalize(int height, Level level) {
-        int minBuildHeight = level.getMinBuildHeight();
-        int maxBuildHeight = level.getMaxBuildHeight();
+        int minBuildHeight = level.getMinBuildHeight() - 32;
+        int maxBuildHeight = level.getMaxBuildHeight() + 32;
 
         if (height > maxBuildHeight || height < minBuildHeight) {
             return 0;

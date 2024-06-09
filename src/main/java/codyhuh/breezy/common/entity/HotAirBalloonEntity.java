@@ -308,7 +308,7 @@ public class HotAirBalloonEntity extends LivingEntity implements GeoEntity {
         double direction = data.getWindAtHeight(blockPosition().getY(), level());
         Holder<Biome> holder = level().getBiome(blockPosition());
         int litness = getLitness();
-        Vec3 wind = new Vec3(WindMathUtil.stepX(direction), 0.0, WindMathUtil.stepZ(direction)).scale(0.4F);
+        Vec3 wind = new Vec3(WindMathUtil.stepX(direction), 0.0, WindMathUtil.stepZ(direction)).scale(0.2F);
         double uplift = 0;
 
         if (litness > 0) {
@@ -321,36 +321,36 @@ public class HotAirBalloonEntity extends LivingEntity implements GeoEntity {
             return new Vec3(0, -0.075, 0);
         }
         if (litness == 0) {
-            wind.scale(0.5);
+            wind = wind.scale(0.5);
             if (onGround()) {
                 return new Vec3(0, -0.075, 0);
             } else {
                 uplift -= 0.075D;
             }
         }
-        if (!level().canSeeSky(blockPosition())) wind.scale(0.4);
+        if (!level().canSeeSky(blockPosition())) wind = wind.scale(0.5);
         if (getSandbags() > 0) {
-            uplift -= (getSandbags() + 1) * 0.02D;
+            uplift -= (getSandbags() + 1) * 0.025D;
         }
-        if (getY() >= level().getMaxBuildHeight() - 12) {
-            uplift = 0;
+        if (getY() >= level().getMaxBuildHeight() - 24) {
+            uplift = -0.0075;
         }
 
         double biomePenalty = BreezyConfig.COMMON.lowWindBiomeSpeedPenalty.get();
         double biomeBonus = BreezyConfig.COMMON.highWindBiomeSpeedBonus.get();
-        wind.add(0, uplift, 0);
+        wind = wind.add(0, uplift, 0);
         if (holder.is(BreezyBiomeTags.NO_WIND)) {
             return new Vec3(0, uplift, 0);
         } else {
             if (holder.is(BreezyBiomeTags.LESS_WIND)) {
-                wind.scale(biomePenalty);
+                wind = wind.scale(biomePenalty);
             } else if (holder.is(BreezyBiomeTags.MORE_WIND)) {
-                wind.scale(biomeBonus);
+                wind = wind.scale(biomeBonus);
             }
         }
         double altitudeBonus = (data.getLayer(blockPosition().getY(), level()) * BreezyConfig.COMMON.altitudeMultiplier.get());
-        wind.add(altitudeBonus, 0, altitudeBonus);
-        return new Vec3(wind.x, uplift, wind.z);
+        wind = wind.multiply(1 + altitudeBonus, 1, 1 + altitudeBonus);
+        return wind;
     }
 
     public boolean canDrownInFluidType(FluidType type) {
