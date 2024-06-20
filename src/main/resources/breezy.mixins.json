@@ -1,0 +1,19 @@
+{
+  "required": true,
+  "package": "codyhuh.breezy.core.mixin",
+  "compatibilityLevel": "JAVA_17",
+  "minVersion": "0.8",
+  "refmap": "breezy.refmap.json",
+  "mixins": [
+    "MobEffectMixin",
+    "MobMixin",
+    "NameTagItemMixin",
+    "ProjectileUtilMixin"
+  ],
+  "client": [
+    "ClientLevelMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

@@ -1,6 +1,7 @@
 {
   "parent": "minecraft:item/generated",
   "textures": {
-    "layer0": "breezy:item/hot_air_balloon"
+    "layer0": "breezy:item/hot_air_balloon",
+    "layer1": "breezy:item/hot_air_balloon_overlay"
   }
 }
