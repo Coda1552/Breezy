@@ -1,0 +1,14 @@
+{
+  "values": [
+    "minecraft:blaze",
+    "minecraft:magma_cube",
+    {
+      "id": "alexsmobs:laviathan",
+      "required": false
+    },
+    {
+      "id": "alexsmobs:sunbird",
+      "required": false
+    }
+  ]
+}
