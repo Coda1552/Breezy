@@ -27,6 +27,7 @@ import net.minecraftforge.client.event.RegisterColorHandlersEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
+import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nullable;
 
@@ -35,17 +36,17 @@ import javax.annotation.Nullable;
 public class ClientEvents {
 
     @SubscribeEvent
-    public static void registerEntityRenders(EntityRenderersEvent.RegisterRenderers e) {
-        e.registerEntityRenderer(BreezyEntities.HOT_AIR_BALLOON.get(), HotAirBalloonRenderer::new);
+    public static void registerEntityRenders(EntityRenderersEvent.RegisterRenderers event) {
+        event.registerEntityRenderer(BreezyEntities.HOT_AIR_BALLOON.get(), HotAirBalloonRenderer::new);
     }
 
     @SubscribeEvent
-    public static void registerClient(final FMLClientSetupEvent e) {
+    public static void registerClient(final FMLClientSetupEvent event) {
         ItemProperties.register(BreezyItems.GUST_GAUGE.get(), new ResourceLocation("angle"), new ClampedItemPropertyFunction() {
-            private final CompassWobble wobble = new CompassWobble();
-            private final CompassWobble wobbleRandom = new CompassWobble();
+            private final GustGaugeWobble gaugeWobble = new GustGaugeWobble();
+            private final GustGaugeWobble randomWobble = new GustGaugeWobble();
 
-            public float unclampedCall(ItemStack stack, @Nullable ClientLevel clientLevel, @Nullable LivingEntity livingEntity, int p_174675_) {
+            public float unclampedCall(@NotNull ItemStack stack, @Nullable ClientLevel clientLevel, @Nullable LivingEntity livingEntity, int seed) {
                 Entity entity = livingEntity != null ? livingEntity : stack.getEntityRepresentation();
                 if (entity == null) {
                     return 0.0F;
@@ -54,79 +55,79 @@ public class ClientEvents {
                         clientLevel = (ClientLevel)entity.level();
                     }
 
-                    NewWindSavedData data = BreezyNetworking.CLIENT_CACHE;
+                    NewWindSavedData windData = BreezyNetworking.CLIENT_CACHE;
 
-                    long i = clientLevel != null ? clientLevel.getGameTime() : 0;
-                    if (data != null) {
-                        double direction = data.getWindAtHeight(entity.blockPosition().getY(), entity.level());
-                        boolean flag = livingEntity instanceof Player player && player.isLocalPlayer();
-                        double d1 = 0.0D;
-                        if (flag) {
-                            d1 = livingEntity.getYRot();
+                    long gameTime = clientLevel != null ? clientLevel.getGameTime() : 0;
+                    if (windData != null) {
+                        double windDirection = windData.getWindAtHeight(entity.blockPosition().getY(), entity.level());
+                        boolean isLocal = livingEntity instanceof Player player && player.isLocalPlayer();
+                        double entityRot = 0.0D;
+                        if (isLocal) {
+                            entityRot = livingEntity.getYRot();
                         } else if (entity instanceof ItemFrame) {
-                            d1 = this.getFrameRotation((ItemFrame)entity);
+                            entityRot = this.getFrameRotation((ItemFrame)entity);
                         } else if (entity instanceof ItemEntity) {
-                            d1 = 180.0F - ((ItemEntity)entity).getSpin(0.5F) / ((float)Math.PI * 2F) * 360.0F;
+                            entityRot = 180.0F - ((ItemEntity)entity).getSpin(0.5F) / ((float)Math.PI * 2F) * 360.0F;
                         } else if (livingEntity != null) {
-                            d1 = livingEntity.yBodyRot;
+                            entityRot = livingEntity.yBodyRot;
                         }
 
-                        d1 = Mth.positiveModulo(d1 / 360.0D, 1.0D);
-                        double d2 = this.getAngleTo(new Vec3(WindMathUtil.stepX(direction),
-                                0.0, WindMathUtil.stepZ(direction)).scale(Double.MAX_VALUE), entity) / ((float)Math.PI * 2F);
-                        double d3;
-                        if (flag) {
-                            if (this.wobble.shouldUpdate(i)) {
-                                this.wobble.update(i, 0.5D - (d1 - 0.25D));
+                        entityRot = Mth.positiveModulo(entityRot / 360.0D, 1.0D);
+                        double windAngle = this.getAngleTo(new Vec3(WindMathUtil.stepX(windDirection),
+                                0.0, WindMathUtil.stepZ(windDirection)).scale(Double.MAX_VALUE), entity) / ((float)Math.PI * 2F);
+                        double finalAngle;
+                        if (isLocal) {
+                            if (this.gaugeWobble.shouldUpdate(gameTime)) {
+                                this.gaugeWobble.update(gameTime, 0.5D - (entityRot - 0.25D));
                             }
 
-                            d3 = d2 + this.wobble.rotation;
+                            finalAngle = windAngle + this.gaugeWobble.rotation;
                         } else {
-                            d3 = 0.5D - (d1 - 0.25D - d2);
+                            finalAngle = 0.5D - (entityRot - 0.25D - windAngle);
                         }
 
-                        return Mth.positiveModulo((float)d3, 1.0F);
+                        return Mth.positiveModulo((float)finalAngle, 1.0F);
                     } else {
-                        if (this.wobbleRandom.shouldUpdate(i)) {
-                            this.wobbleRandom.update(i, Math.random());
+                        if (this.randomWobble.shouldUpdate(gameTime)) {
+                            this.randomWobble.update(gameTime, Math.random());
                         }
 
-                        double d0 = this.wobbleRandom.rotation + (double)((float)this.hash(p_174675_) / 2.14748365E9F);
-                        return Mth.positiveModulo((float)d0, 1.0F);
+                        double randomAngle = this.randomWobble.rotation + (double)((float)this.hash(seed) / 2.14748365E9F);
+                        return Mth.positiveModulo((float)randomAngle, 1.0F);
                     }
                 }
             }
 
-            private int hash(int p_174670_) {
-                return p_174670_ * 1327217883;
+            private int hash(int seed) {
+                return seed * 1327217883;
             }
 
-            private double getFrameRotation(ItemFrame p_117914_) {
-                Direction direction = p_117914_.getDirection();
-                int i = direction.getAxis().isVertical() ? 90 * direction.getAxisDirection().getStep() : 0;
-                return Mth.wrapDegrees(180 + direction.get2DDataValue() * 90 + p_117914_.getRotation() * 45 + i);
+            private double getFrameRotation(ItemFrame itemFrame) {
+                Direction direction = itemFrame.getDirection();
+                int rotationOffset = direction.getAxis().isVertical() ? 90 * direction.getAxisDirection().getStep() : 0;
+                return Mth.wrapDegrees(180 + direction.get2DDataValue() * 90 + itemFrame.getRotation() * 45 + rotationOffset);
             }
 
-            private double getAngleTo(Vec3 p_117919_, Entity p_117920_) {
-                return Math.atan2(p_117919_.z() - p_117920_.getZ(), p_117919_.x() - p_117920_.getX());
+            private double getAngleTo(Vec3 targetPosition, Entity entity) {
+                return Math.atan2(targetPosition.z() - entity.getZ(), targetPosition.x() - entity.getX());
             }
         });
     }
 
-    private static class CompassWobble {
+    private static class GustGaugeWobble {
         double rotation;
         private double deltaRotation;
         private long lastUpdateTick;
 
-        boolean shouldUpdate(long p_117934_) {
-            return this.lastUpdateTick != p_117934_;
+        boolean shouldUpdate(long currentTick) {
+            return this.lastUpdateTick != currentTick;
         }
 
-        void update(long p_117936_, double p_117937_) {
-            this.lastUpdateTick = p_117936_;
-            double d0 = p_117937_ - this.rotation;
-            d0 = Mth.positiveModulo(d0 + 0.5D, 1.0D) - 0.5D;
-            this.deltaRotation += d0 * 0.1D;
+        void update(long currentTick, double targetRotation) {
+            this.lastUpdateTick = currentTick;
+            double rotationDifference = targetRotation - this.rotation;
+            rotationDifference = Mth.positiveModulo(rotationDifference + 0.5D, 1.0D) - 0.5D;
+            this.deltaRotation += rotationDifference * 0.1D;
             this.deltaRotation *= 0.8D;
             this.rotation = Mth.positiveModulo(this.rotation + this.deltaRotation, 1.0D);
         }
