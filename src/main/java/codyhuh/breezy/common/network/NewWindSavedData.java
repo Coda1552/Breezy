@@ -4,6 +4,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.DoubleTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.saveddata.SavedData;
 
@@ -63,7 +64,7 @@ public class NewWindSavedData extends SavedData {
         int minBuildHeight = level.getMinBuildHeight() - 32;
         int maxBuildHeight = level.getMaxBuildHeight() + 32;
 
-        if (height > maxBuildHeight || height < minBuildHeight) {
+        if (height >= maxBuildHeight || height <= minBuildHeight) {
             return 0;
         }
 
