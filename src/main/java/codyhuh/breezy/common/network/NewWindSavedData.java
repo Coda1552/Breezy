@@ -4,7 +4,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.DoubleTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
-import net.minecraft.world.item.Items;
+import net.minecraft.util.Mth;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.saveddata.SavedData;
 
@@ -12,6 +12,7 @@ import java.util.Random;
 
 public class NewWindSavedData extends SavedData {
     private static final int LAYERS = 12;
+    final int BLEND_RADIUS = 12;
     private static final double[] windDirections = new double[LAYERS];
 
     public NewWindSavedData(long seed) {
@@ -49,7 +50,61 @@ public class NewWindSavedData extends SavedData {
     }
 
     public double getWindAtHeight(int height, Level level) {
-        return windDirections[normalize(height, level)];
+        int idx = normalize(height, level);
+        // get the wind direction for current layer, calculate layer height, boundaries of current layer
+        double currentAngle = windDirections[idx];
+        double layerHeight = (double) (level.getMaxBuildHeight() + 32 - (level.getMinBuildHeight() - 32)) / LAYERS;
+        double layerStartY = level.getMinBuildHeight() - 32 + (idx * layerHeight);
+        double layerEndY = layerStartY + layerHeight;
+
+        // calc dist from current height to boundaries, determine if blending possible
+        double distToLowerBoundary = height - layerStartY;
+        double distToUpperBoundary = layerEndY - height;
+        boolean canBlendLower = distToLowerBoundary <= BLEND_RADIUS;
+        boolean canBlendUpper = distToUpperBoundary <= BLEND_RADIUS;
+
+        if (canBlendLower || canBlendUpper) {
+            // blend with lower layer or upper layer, obtain relevant angle
+            boolean chooseLower = blendBelowOrNot(canBlendLower, canBlendUpper, distToLowerBoundary, distToUpperBoundary);
+            double neighborAngle = getNeighborWindAngle(idx, chooseLower);
+
+            // calculate blend factor as a percentage, return wind
+            double dist = chooseLower ? distToLowerBoundary : distToUpperBoundary;
+            double blendFactor = calcBlendPercentile(dist, BLEND_RADIUS);
+
+            return interpolateWindAngle(currentAngle, neighborAngle, blendFactor);
+        }
+
+        return windDirections[idx];
+    }
+
+    private boolean blendBelowOrNot(boolean canBlendLower, boolean canBlendUpper, double distToLowerBoundary, double distToUpperBoundary) {
+        if (canBlendLower && canBlendUpper) {
+            return distToLowerBoundary < distToUpperBoundary;
+        }
+        return canBlendLower;
+    }
+
+    private double getNeighborWindAngle(int idx, boolean chooseLower) {
+        if (chooseLower) {
+            return windDirections[Math.max(0, idx - 1)]; // Blend with lower layer
+        } else {
+            return windDirections[Math.min(LAYERS - 1, idx + 1)]; // Blend with upper layer
+        }
+    }
+
+    private double calcBlendPercentile(double dist, int blendRadius) {
+        double t = (blendRadius - dist) / (double) blendRadius;
+        return Mth.clamp(t, 0.0D, 1.0D);
+    }
+
+    private double interpolateWindAngle(double currentAngle, double neighborAngle, double blendFactor) {
+        double diff = neighborAngle - currentAngle;
+        if (diff > 180.0) diff -= 360.0;
+        if (diff <= -180.0) diff += 360.0;
+
+        double interp = currentAngle + (diff * blendFactor * 0.5);
+        return Mth.positiveModulo(interp, 360.0D);
     }
 
     public int getLayer(int yValue, Level level) {

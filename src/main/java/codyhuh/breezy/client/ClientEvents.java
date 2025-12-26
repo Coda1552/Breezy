@@ -96,6 +96,7 @@ public class ClientEvents {
                         return Mth.positiveModulo((float)randomAngle, 1.0F);
                     }
                 }
+                // This method returns a value from 0.0 to 1.0, where 0 and 1 result in the gust gauge pointing straight up
             }
 
             private int hash(int seed) {
