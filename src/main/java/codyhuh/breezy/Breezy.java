@@ -110,7 +110,7 @@ public class Breezy {
     private void resetWindDirection(TickEvent.LevelTickEvent e) {
         Level world = e.level;
 
-        if (!world.isClientSide && world.getGameTime() % BreezyConfig.COMMON.windPeriodLength.get() == 0) {
+        if (!world.isClientSide && world.getGameTime() % BreezyConfig.COMMON.windPeriodLength.get() == 0 && BreezyConfig.COMMON.windChanges.get()) {
             NewWindSavedData.resetWindDirections(BreezyConfig.COMMON.windPeriodLength.get(),
                     BreezyConfig.COMMON.changePercentage.get());
             world.players().forEach(player -> {

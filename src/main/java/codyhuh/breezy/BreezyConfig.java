@@ -8,6 +8,7 @@ import org.apache.commons.lang3.tuple.Pair;
 public class BreezyConfig {
     public static class Common {
         public final ForgeConfigSpec.ConfigValue<Integer> windPeriodLength;
+        public final ForgeConfigSpec.ConfigValue<Boolean> windChanges;
         public final ForgeConfigSpec.ConfigValue<Double> changePercentage;
         public final ForgeConfigSpec.ConfigValue<Double> lowWindBiomeSpeedPenalty;
         public final ForgeConfigSpec.ConfigValue<Double> highWindBiomeSpeedBonus;
@@ -16,6 +17,7 @@ public class BreezyConfig {
         Common(ForgeConfigSpec.Builder builder) {
             builder.push("wind patterns");
             windPeriodLength = builder.comment("Duration in ticks for how often the wind changes\nDefault: 24000").define("wind_period_length", 24000);
+            windChanges = builder.comment("Whether wind changes at all").define("wind_changes", true);
             changePercentage = builder.comment("Percent by which wind changes each duration\nDefault: 2.5%").defineInRange("wind_change_percent", 0.025, 0.0, 1.0);
             builder.push("speed modifiers");
             lowWindBiomeSpeedPenalty = builder.comment("Speed modifier for biomes with less wind\nDefault: 0.7").define("low_wind_modifier", 0.7);
