@@ -8,6 +8,7 @@ import net.minecraft.world.item.Item;
 
 public class BreezyItemTags {
     public static final TagKey<Item> IGNITION_SOURCES = bind("ignition_sources");
+    public static final TagKey<Item> FUEL = bind("fuel");
 
     private static TagKey<Item> bind(String name) {
         return TagKey.create(Registries.ITEM, new ResourceLocation(Breezy.MOD_ID, name));

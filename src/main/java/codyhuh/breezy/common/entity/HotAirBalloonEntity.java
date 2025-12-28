@@ -37,16 +37,17 @@ import net.minecraft.world.entity.vehicle.DismountHelper;
 import net.minecraft.world.item.DyeItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.level.GameRules;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.biome.Biome;
-import net.minecraft.world.level.block.TorchBlock;
 import net.minecraft.world.level.entity.EntityTypeTest;
 import net.minecraft.world.level.gameevent.GameEvent;
 import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
+import net.minecraftforge.common.ForgeHooks;
 import net.minecraftforge.common.Tags;
 import net.minecraftforge.fluids.FluidType;
 import org.jetbrains.annotations.NotNull;
@@ -63,6 +64,7 @@ import java.util.Optional;
 public class HotAirBalloonEntity extends LivingEntity implements GeoEntity {
     public static final AABB BASKET_AABB = new AABB(-0.7, 0, -0.7, 0.7, 1.0, 0.7);
     public static final AABB BALLOON_AABB = new AABB(-1.2, 2.4, -1.2, 1.2, 5, 1.2);
+    public static final int MAX_LITNESS = 5;
 
     public static final int DEFAULT_COLOR = 16351261;
 
@@ -395,9 +397,23 @@ public class HotAirBalloonEntity extends LivingEntity implements GeoEntity {
         }
         ItemStack itemstack = player.getItemInHand(hand);
         if (balloon) {
-            if (getLitness() < 5) {
-                if (itemstack.is(BreezyItemTags.IGNITION_SOURCES)) {
-                    setLitness(getLitness() + 2);
+            if (getLitness() < MAX_LITNESS) {
+                boolean lit = false;
+                if (BreezyConfig.COMMON.furnaceFuel.get()) {
+                    if (itemstack.is(BreezyItemTags.FUEL)) {
+                        int fuelTime = ForgeHooks.getBurnTime(itemstack, RecipeType.SMELTING);
+                        if (fuelTime > 0) {
+                            setLitness(Math.min((int)((fuelTime / 20) / 40), MAX_LITNESS));
+                            lit = true;
+                        }
+                    }
+                } else {
+                    if (itemstack.is(BreezyItemTags.IGNITION_SOURCES)) {
+                        setLitness(getLitness() + 2);
+                        lit = true;
+                    }
+                }
+                if (lit) {
                     playSound(SoundEvents.FLINTANDSTEEL_USE, 1.0F, 1.0F);
                     Vec3 origin = boxInLevel(BALLOON_AABB).getCenter().subtract(0, 1.85, 0);
                     for (int i = 0; i < 5; i++) {

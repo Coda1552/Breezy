@@ -13,8 +13,10 @@ public class BreezyConfig {
         public final ForgeConfigSpec.ConfigValue<Double> lowWindBiomeSpeedPenalty;
         public final ForgeConfigSpec.ConfigValue<Double> highWindBiomeSpeedBonus;
         public final ForgeConfigSpec.ConfigValue<Double> altitudeMultiplier;
+        public final ForgeConfigSpec.ConfigValue<Boolean> furnaceFuel;
 
         Common(ForgeConfigSpec.Builder builder) {
+            builder.push("common");
             builder.push("wind patterns");
             windPeriodLength = builder.comment("Duration in ticks for how often the wind changes\nDefault: 24000").define("wind_period_length", 24000);
             windChanges = builder.comment("Whether wind changes at all").define("wind_changes", true);
@@ -24,6 +26,8 @@ public class BreezyConfig {
             highWindBiomeSpeedBonus = builder.comment("Speed modifier for biomes with more wind\nDefault: 1.3").define("high_wind_modifier", 1.3);
             altitudeMultiplier = builder.comment("Speed modifier added for each higher atmospheric layer\nDefault: 0.065").define("altitude_bonus", 0.065);
             builder.pop();
+            builder.pop();
+            furnaceFuel = builder.comment("Whether hot air balloons take in furnace fuel instead of ignition").define("furnace_fuel", false);
             builder.pop();
         }
     }
