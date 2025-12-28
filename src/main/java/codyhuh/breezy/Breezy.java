@@ -6,11 +6,16 @@ import codyhuh.breezy.core.data.server.BreezyEntityTypeTagsProvider;
 import codyhuh.breezy.common.network.BreezyNetworking;
 import codyhuh.breezy.common.network.WindDirectionPacket;
 import codyhuh.breezy.common.network.NewWindSavedData;
+import codyhuh.breezy.core.other.compat.CnCCompat;
+import codyhuh.breezy.core.other.compat.SnRCompat;
 import codyhuh.breezy.core.other.tags.BreezyItemTags;
+import codyhuh.breezy.core.other.util.CarpetBombUtil;
 import codyhuh.breezy.core.other.util.HitBoxUtil;
 import codyhuh.breezy.core.registry.BreezyEntities;
 import codyhuh.breezy.core.registry.BreezyItems;
 import codyhuh.breezy.core.registry.BreezyParticles;
+import com.teamabnormals.savage_and_ravage.core.registry.SRBlocks;
+import com.teamabnormals.savage_and_ravage.core.registry.SREntityTypes;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.data.DataGenerator;
 import net.minecraft.data.PackOutput;
@@ -41,10 +46,11 @@ import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 import static codyhuh.breezy.common.entity.HotAirBalloonEntity.BALLOON_AABB;
+import static codyhuh.breezy.core.other.compat.ModConstants.CNC;
+import static codyhuh.breezy.core.other.compat.ModConstants.SNR;
 
 @Mod(Breezy.MOD_ID)
 public class Breezy {
@@ -63,7 +69,7 @@ public class Breezy {
 
         forgeBus.addListener(this::resetWindDirection);
         forgeBus.addListener(this::syncWindDataOnJoinWorld);
-        forgeBus.addListener(this::tntDrop);
+        forgeBus.addListener(this::carpetBomb);
 
         BreezyParticles.PARTICLES.register(bus);
         BreezyEntities.ENTITIES.register(bus);
@@ -126,32 +132,24 @@ public class Breezy {
         }
     }
 
-    public void tntDrop(PlayerInteractEvent.RightClickItem event) {
+    public void carpetBomb(PlayerInteractEvent.RightClickItem event) {
+        if (SNR) {
+            SnRCompat.carpetBomb(event);
+        }
+        if (CNC) {
+            CnCCompat.carpetBomb(event);
+        }
+
         Player player = event.getEntity();
         ItemStack pen = ItemStack.EMPTY;
         ItemStack pineapple = ItemStack.EMPTY;
+
         for (ItemStack stack : player.getHandSlots()) {
             if (stack.is(BreezyItemTags.IGNITION_SOURCES)) pen = stack;
             if (stack.is(Items.TNT)) pineapple = stack;
         }
-        if (player.getVehicle() instanceof HotAirBalloonEntity balloon && !balloon.onGround() &&
-                HitBoxUtil.isNotAimingAtHitbox(player, HitBoxUtil.boxInLevel(BALLOON_AABB, balloon),
-                        player.getViewVector((float) player.getEntityReach())) && !pen.isEmpty() && !pineapple.isEmpty()) {
-            if (event.getLevel() instanceof ServerLevel server) {
-                PrimedTnt tnt = EntityType.TNT.create(event.getLevel());
-                if (tnt != null) {
-                    tnt.moveTo(Vec3.atBottomCenterOf(player.blockPosition().above()));
-                    server.addFreshEntity(tnt);
-                    balloon.playSound(SoundEvents.FLINTANDSTEEL_USE, 1.0F, 1.0F);
-                    if (!player.getAbilities().instabuild) {
-                        pineapple.shrink(1);
-                        pen.hurtAndBreak(1, player, p -> p.broadcastBreakEvent(player.getUsedItemHand()));
-                    }
-                }
-            } else {
-                player.swing(event.getHand());
-            }
-            event.setCancellationResult(InteractionResult.SUCCESS);
-        }
+
+        InteractionResult result = CarpetBombUtil.carpetBomb(event, pen, pineapple, EntityType.TNT);
+        event.setCancellationResult(result);
     }
 }
