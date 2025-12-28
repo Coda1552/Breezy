@@ -65,6 +65,7 @@ public class HotAirBalloonEntity extends LivingEntity implements GeoEntity {
     public static final AABB BASKET_AABB = new AABB(-0.7, 0, -0.7, 0.7, 1.0, 0.7);
     public static final AABB BALLOON_AABB = new AABB(-1.2, 2.4, -1.2, 1.2, 5, 1.2);
     public static final int MAX_LITNESS = 5;
+    public static final int MAX_SANDBAGS = 8;
 
     public static final int DEFAULT_COLOR = 16351261;
 
@@ -403,7 +404,7 @@ public class HotAirBalloonEntity extends LivingEntity implements GeoEntity {
                     if (itemstack.is(BreezyItemTags.FUEL)) {
                         int fuelTime = ForgeHooks.getBurnTime(itemstack, RecipeType.SMELTING);
                         if (fuelTime > 0) {
-                            setLitness(Math.min((int)((fuelTime / 20) / 40), MAX_LITNESS));
+                            setLitness(getLitness() + Math.min((int)((fuelTime / 20) / 40), MAX_LITNESS));
                             lit = true;
                         }
                     }
@@ -437,7 +438,7 @@ public class HotAirBalloonEntity extends LivingEntity implements GeoEntity {
         }
         if (basket) {
             if (player.getItemInHand(hand).is(ItemTags.SAND)) {
-                if (getSandbags() < 8) {
+                if (getSandbags() < MAX_SANDBAGS) {
                     setSandbags(getSandbags() + 1);
                     playSound(SoundEvents.SAND_PLACE, 1.0F, 1.5F);
                     if (!player.isCreative()) {
@@ -612,7 +613,7 @@ public class HotAirBalloonEntity extends LivingEntity implements GeoEntity {
     }
 
     public int getLitness() {
-        return Math.min(this.entityData.get(LITNESS), 5);
+        return Math.min(this.entityData.get(LITNESS), MAX_LITNESS);
     }
 
     public void setSandbags(int sandbags) {
@@ -620,7 +621,7 @@ public class HotAirBalloonEntity extends LivingEntity implements GeoEntity {
     }
 
     public int getSandbags() {
-        return Math.min(this.entityData.get(SANDBAGS), 8);
+        return Math.min(this.entityData.get(SANDBAGS), MAX_SANDBAGS);
     }
 
     @Override
@@ -675,7 +676,7 @@ public class HotAirBalloonEntity extends LivingEntity implements GeoEntity {
         return new ItemStack(BreezyItems.HOT_AIR_BALLOON.get());
     }
 
-    public boolean startRiding(Entity p_19966_, boolean p_19967_) {
+    public boolean startRiding(@NotNull Entity p_19966_, boolean p_19967_) {
         return false;
     }
 
