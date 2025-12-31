@@ -406,11 +406,21 @@ public class HotAirBalloonEntity extends LivingEntity implements GeoEntity {
                         if (fuelTime > 0) {
                             setLitness(getLitness() + Math.min((int)((fuelTime / 20) / 40), MAX_LITNESS));
                             lit = true;
+                            itemstack.shrink(1);
+                            if (itemstack.hasCraftingRemainingItem() && !player.getAbilities().instabuild) {
+                                ItemStack container = itemstack.getCraftingRemainingItem();
+                                if (itemstack.isEmpty()) {
+                                    itemstack = container;
+                                } else {
+                                    player.drop(container, false);
+                                }
+                            }
                         }
                     }
                 } else {
                     if (itemstack.is(BreezyItemTags.IGNITION_SOURCES)) {
                         setLitness(getLitness() + 2);
+                        itemstack.hurtAndBreak(1, player, p -> p.broadcastBreakEvent(player.getUsedItemHand()));
                         lit = true;
                     }
                 }
@@ -420,7 +430,6 @@ public class HotAirBalloonEntity extends LivingEntity implements GeoEntity {
                     for (int i = 0; i < 5; i++) {
                         level().addParticle(ParticleTypes.LAVA, origin.x, origin.y, origin.z, 0, 0, 0);
                     }
-                    itemstack.hurtAndBreak(1, player, p -> p.broadcastBreakEvent(player.getUsedItemHand()));
                     return InteractionResult.SUCCESS;
                 }
             }
