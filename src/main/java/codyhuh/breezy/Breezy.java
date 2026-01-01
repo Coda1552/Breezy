@@ -7,6 +7,7 @@ import codyhuh.breezy.common.network.BreezyNetworking;
 import codyhuh.breezy.common.network.WindDirectionPacket;
 import codyhuh.breezy.common.network.NewWindSavedData;
 import codyhuh.breezy.core.other.compat.CnCCompat;
+import codyhuh.breezy.core.other.compat.OreganizedCompat;
 import codyhuh.breezy.core.other.compat.SnRCompat;
 import codyhuh.breezy.core.other.tags.BreezyItemTags;
 import codyhuh.breezy.core.other.util.CarpetBombUtil;
@@ -49,8 +50,7 @@ import org.apache.logging.log4j.Logger;
 import java.util.concurrent.CompletableFuture;
 
 import static codyhuh.breezy.common.entity.HotAirBalloonEntity.BALLOON_AABB;
-import static codyhuh.breezy.core.other.compat.ModConstants.CNC;
-import static codyhuh.breezy.core.other.compat.ModConstants.SNR;
+import static codyhuh.breezy.core.other.compat.ModConstants.*;
 
 @Mod(Breezy.MOD_ID)
 public class Breezy {
@@ -138,6 +138,9 @@ public class Breezy {
         }
         if (CNC) {
             CnCCompat.carpetBomb(event);
+        }
+        if (OREGANIZED) {
+            OreganizedCompat.carpetBomb(event);
         }
 
         Player player = event.getEntity();

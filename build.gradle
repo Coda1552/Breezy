@@ -80,6 +80,7 @@ dependencies {
     compileOnly "maven.modrinth:caverns-and-chasms:fsal1BlK"
     compileOnly "maven.modrinth:savage-and-ravage:NsU4X2ew"
     compileOnly "maven.modrinth:blueprint:xtEwbO0X"
+    compileOnly "maven.modrinth:oreganized:HHAP0big"
 
 //    runtimeOnly "maven.modrinth:just-dandy:65yvdnJ4"
 //    runtimeOnly "maven.modrinth:blueprint:xtEwbO0X"
